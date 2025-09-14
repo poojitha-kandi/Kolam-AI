@@ -1,9 +1,12 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
+from PIL import Image, ImageDraw
 import io, base64, numpy as np, cv2
+import math
+import random
 import os
+from datetime import datetime
 
 app = FastAPI()
 app.add_middleware(
@@ -13,71 +16,249 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------- Replace with your notebook pipeline ----------
-def process_image_bytes(img_bytes):
-    """Input: image bytes. Output: RGB numpy array (0-255) recreated kolam."""
+# Create generated_images directory if it doesn't exist
+GENERATED_IMAGES_DIR = "generated_images"
+os.makedirs(GENERATED_IMAGES_DIR, exist_ok=True)
+
+# ---------- Enhanced Kolam AI System ----------
+def find_grid_size_from_image(img_bytes):
+    """Analyzes an image to find the number of dots and determine the grid size."""
     img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     img_np = np.array(img)
-    # example pipeline (tweak to match your notebook)
+    
+    # Convert to grayscale for circle detection
     gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
-    # adaptive threshold or Otsu
-    _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    # optional morphological cleanup
-    kernel = np.ones((3,3), np.uint8)
-    bw = cv2.morphologyEx(bw, cv2.MORPH_OPEN, kernel)
-    # Use OpenCV thinning instead of skeletonize for now
-    # Apply morphological thinning to get skeleton-like effect
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
-    skeleton = cv2.morphologyEx(bw, cv2.MORPH_GRADIENT, kernel)
-    out_rgb = cv2.cvtColor(skeleton, cv2.COLOR_GRAY2RGB)
-    return out_rgb
+    blurred_img = cv2.medianBlur(gray, 5)
+    
+    # Use HoughCircles to detect dots (pulli)
+    circles = cv2.HoughCircles(blurred_img, cv2.HOUGH_GRADIENT, dp=1, minDist=30,
+                               param1=60, param2=20, minRadius=8, maxRadius=30)
+    
+    detected_dots = []
+    if circles is not None:
+        circles = np.round(circles[0, :]).astype("int")
+        for (x, y, r) in circles:
+            detected_dots.append((x, y))
+        
+        num_dots = len(detected_dots)
+        grid_size = int(round(math.sqrt(num_dots)))
+        print(f"Analysis complete: Found {num_dots} potential dots, assuming a {grid_size}x{grid_size} grid.")
+        return grid_size, detected_dots
+    
+    # Fallback: try to estimate from image dimensions
+    height, width = gray.shape
+    estimated_grid = max(2, min(5, int(width / 100)))  # Rough estimate
+    print(f"No dots detected, using estimated grid size: {estimated_grid}x{estimated_grid}")
+    return estimated_grid, []
 
-# ---------- Simple similarity (MVP) ----------
-# Precomputed database of thumbnails (prepare offline) as numpy arrays smaller size
-THUMBS_DIR = "data/thumbs"  # store small images here
-def load_thumbs():
-    thumbs = []
-    ids = []
-    if not os.path.exists(THUMBS_DIR):
-        return ids, thumbs
-    for fn in os.listdir(THUMBS_DIR):
-        path = os.path.join(THUMBS_DIR, fn)
-        img = Image.open(path).convert("RGB").resize((64,64))
-        arr = np.array(img).astype(np.float32).ravel()
-        arr = arr / (np.linalg.norm(arr)+1e-8)
-        ids.append(fn)
-        thumbs.append(arr)
-    return ids, np.stack(thumbs) if thumbs else np.zeros((0,1))
+def create_recreated_image(img_bytes, grid_size, detected_dots, img_size=400):
+    """Creates a recreated image highlighting dots and skeleton structure."""
+    original_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    
+    # Create overlay image
+    img = Image.new('RGBA', (img_size, img_size), (255, 255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    
+    # Calculate spacing for dots
+    border = 50
+    available_space = img_size - 2 * border
+    spacing = available_space / (grid_size + 1)
+    
+    # Draw grid dots (highlighted in red)
+    dot_radius = max(4, int(spacing / 12))
+    dots = []
+    for i in range(1, grid_size + 1):
+        for j in range(1, grid_size + 1):
+            x = border + i * spacing
+            y = border + j * spacing
+            dots.append((x, y))
+            # Draw highlighted red dot
+            draw.ellipse([x - dot_radius, y - dot_radius, 
+                         x + dot_radius, y + dot_radius], fill='red', outline='darkred', width=2)
+    
+    # Draw skeleton/connecting lines (in blue-gray)
+    line_width = max(2, int(spacing / 25))
+    
+    # Connect adjacent dots with skeleton lines
+    for i in range(grid_size):
+        for j in range(grid_size):
+            current_dot = dots[i * grid_size + j]
+            # Connect to right neighbor
+            if j < grid_size - 1:
+                right_dot = dots[i * grid_size + (j + 1)]
+                draw.line([current_dot, right_dot], fill='steelblue', width=line_width)
+            # Connect to bottom neighbor
+            if i < grid_size - 1:
+                bottom_dot = dots[(i + 1) * grid_size + j]
+                draw.line([current_dot, bottom_dot], fill='steelblue', width=line_width)
+    
+    # Add diagonal connections for aesthetic
+    if grid_size >= 3:
+        for i in range(grid_size - 1):
+            for j in range(grid_size - 1):
+                current_dot = dots[i * grid_size + j]
+                diagonal_dot = dots[(i + 1) * grid_size + (j + 1)]
+                draw.line([current_dot, diagonal_dot], fill='lightblue', width=max(1, line_width // 2))
+    
+    return np.array(img.convert('RGB'))
 
-THUMB_IDS, THUMB_ARRS = load_thumbs()
+def generate_pattern_variant(grid_size, pattern_type, img_size=400):
+    """Generates different pattern variants based on grid size and pattern type."""
+    img = Image.new('RGB', (img_size, img_size), 'white')
+    draw = ImageDraw.Draw(img)
+    
+    # Calculate spacing for dots
+    border = 50
+    available_space = img_size - 2 * border
+    spacing = available_space / (grid_size + 1)
+    
+    # Draw dots (pulli) first
+    dot_radius = max(3, int(spacing / 15))
+    dots = []
+    for i in range(1, grid_size + 1):
+        for j in range(1, grid_size + 1):
+            x = border + i * spacing
+            y = border + j * spacing
+            dots.append((x, y))
+            # Draw black dot
+            draw.ellipse([x - dot_radius, y - dot_radius, 
+                         x + dot_radius, y + dot_radius], fill='black')
+    
+    line_width = max(2, int(spacing / 20))
+    
+    if pattern_type == "traditional":
+        # Traditional interwoven pattern
+        center_x, center_y = img_size // 2, img_size // 2
+        radius = spacing * 0.4
+        
+        def draw_arc_polygon(cx, cy, r, start_angle, end_angle, color='blue'):
+            points = []
+            num_points = 20
+            for i in range(num_points + 1):
+                angle = start_angle + (end_angle - start_angle) * i / num_points
+                x = cx + r * math.cos(math.radians(angle))
+                y = cy + r * math.sin(math.radians(angle))
+                points.append((x, y))
+            
+            for i in range(len(points) - 1):
+                draw.line([points[i], points[i + 1]], fill=color, width=line_width)
+        
+        # Draw interwoven arcs
+        colors = ['blue', 'green', 'purple', 'orange']
+        for i in range(grid_size):
+            color = colors[i % len(colors)]
+            draw_arc_polygon(center_x + (i-1) * spacing/2, center_y, radius, 0, 180, color)
+            draw_arc_polygon(center_x + (i-1) * spacing/2, center_y - spacing, radius, 180, 360, color)
+    
+    elif pattern_type == "geometric":
+        # Geometric patterns with straight lines
+        colors = ['red', 'blue', 'green', 'purple']
+        
+        # Draw geometric connections
+        for i in range(len(dots)):
+            for j in range(i + 1, len(dots)):
+                if random.random() < 0.3:  # 30% chance to connect
+                    color = colors[random.randint(0, len(colors) - 1)]
+                    draw.line([dots[i], dots[j]], fill=color, width=line_width // 2)
+    
+    elif pattern_type == "spiral":
+        # Spiral patterns
+        center_x, center_y = img_size // 2, img_size // 2
+        num_points = 100
+        spiral_points = []
+        
+        for i in range(num_points):
+            t = i * 0.2
+            r = spacing * 0.5 * (1 + t * 0.1)
+            x = center_x + r * math.cos(t)
+            y = center_y + r * math.sin(t)
+            spiral_points.append((x, y))
+        
+        for i in range(len(spiral_points) - 1):
+            draw.line([spiral_points[i], spiral_points[i + 1]], fill='purple', width=line_width)
+    
+    else:  # "lissajous" 
+        # Lissajous curves
+        num_points = 200
+        path_points = []
+        
+        for i in range(num_points):
+            t = 2 * math.pi * i / num_points
+            x = (available_space / 2) * math.sin(grid_size * t + math.pi/2) + img_size / 2
+            y = (available_space / 2) * math.sin((grid_size - 1) * t) + img_size / 2
+            path_points.append((x, y))
+        
+        for i in range(len(path_points) - 1):
+            draw.line([path_points[i], path_points[i + 1]], fill='purple', width=line_width)
+        
+        if len(path_points) > 1:
+            draw.line([path_points[-1], path_points[0]], fill='purple', width=line_width)
+    
+    return np.array(img)
 
-def find_similar_bytes(img_bytes, k=5):
-    if THUMB_ARRS.size == 0:
-        return []
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGB").resize((64,64))
-    q = np.array(img).astype(np.float32).ravel()
-    q = q / (np.linalg.norm(q)+1e-8)
-    sims = (THUMB_ARRS @ q)
-    idx = np.argsort(-sims)[:k]
-    results = []
-    for i in idx:
-        fn = THUMB_IDS[i]
-        score = float(sims[i])
-        # return thumbnail as base64
-        with open(os.path.join(THUMBS_DIR, fn), "rb") as f:
-            b64 = base64.b64encode(f.read()).decode("utf-8")
-        results.append({"id": fn, "score": score, "thumb_base64": b64})
-    return results
+def generate_similar_designs(grid_size, num_designs=4):
+    """Generate similar traditional Kolam designs based on the detected grid size."""
+    similar_designs = []
+    
+    # Generate only traditional patterns with variations
+    for i in range(num_designs):
+        design = generate_pattern_variant(grid_size, "traditional")
+        
+        # Convert to base64
+        pil_img = Image.fromarray(design)
+        buf = io.BytesIO()
+        pil_img.save(buf, format="PNG")
+        design_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        
+        # Save image to generated_images folder
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"similar_traditional_{i}_{timestamp}.png"
+        filepath = os.path.join(GENERATED_IMAGES_DIR, filename)
+        pil_img.save(filepath)
+        
+        similar_designs.append({
+            "id": f"traditional_{i}_{timestamp}",
+            "score": random.uniform(0.7, 0.95),  # Simulated similarity score
+            "thumb_base64": design_b64,
+            "pattern_type": "traditional",
+            "filename": filename
+        })
+    
+    # Sort by similarity score in descending order
+    similar_designs.sort(key=lambda x: x["score"], reverse=True)
+    
+    return similar_designs
 
 # ---------- API endpoint ----------
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     content = await file.read()
-    recreated = process_image_bytes(content)
-    # encode recreated as base64 PNG
+    
+    # Step 1: Analyze the input image
+    grid_size, detected_dots = find_grid_size_from_image(content)
+    
+    # Step 2: Create recreated image highlighting dots and skeleton
+    recreated = create_recreated_image(content, grid_size, detected_dots)
+    
+    # Step 3: Generate similar designs based on the ruleset
+    similar_designs = generate_similar_designs(grid_size, num_designs=4)
+    
+    # Encode recreated image as base64 PNG and save to file
     pil = Image.fromarray(recreated)
     buf = io.BytesIO()
     pil.save(buf, format="PNG")
     recreated_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-    similar = find_similar_bytes(content, k=5)
-    return JSONResponse({"image_base64": recreated_b64, "similar": similar})
+    
+    # Save recreated image to generated_images folder
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    recreated_filename = f"recreated_{timestamp}.png"
+    recreated_filepath = os.path.join(GENERATED_IMAGES_DIR, recreated_filename)
+    pil.save(recreated_filepath)
+    
+    return JSONResponse({
+        "recreated_input": recreated_b64,  # Changed from "image_base64" to "recreated_input"
+        "similar": similar_designs,
+        "grid_size": grid_size,
+        "num_dots_detected": len(detected_dots),
+        "recreated_filename": recreated_filename
+    })

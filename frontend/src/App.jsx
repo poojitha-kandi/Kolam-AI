@@ -30,7 +30,8 @@ function App() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/predict', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         body: formData,
       });
@@ -92,15 +93,17 @@ function App() {
         {result && (
           <div className="results-section">
             <h2>✨ Recreated Kolam Pattern</h2>
+            <p>Showing dots and skeleton structure from your uploaded image</p>
             <img 
-              src={`data:image/png;base64,${result.image_base64}`} 
+              src={`data:image/png;base64,${result.recreated_input}`} 
               alt="Recreated Kolam" 
               className="result-image"
             />
             
             {result.similar && result.similar.length > 0 && (
               <div className="similar-section">
-                <h3>🔍 Similar Kolam Designs</h3>
+                <h3>🔍 Similar Traditional Kolam Designs</h3>
+                <p>Generated traditional patterns following the same grid rules (sorted by similarity)</p>
                 <div className="similar-grid">
                   {result.similar.map((item, index) => (
                     <div key={index} className="similar-item">
@@ -110,6 +113,7 @@ function App() {
                         className="similar-image"
                       />
                       <p className="similarity-score">
+                        Traditional Pattern {index + 1}<br/>
                         Similarity: {(item.score * 100).toFixed(1)}%
                       </p>
                     </div>

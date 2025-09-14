@@ -48,6 +48,7 @@ Thumbs.db
 # Backend specific
 backend/data/
 backend/__pycache__/
+backend/generated_images/
 
 # Node modules (covered by frontend/.gitignore but adding for safety)
 node_modules/
