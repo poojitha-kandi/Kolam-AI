@@ -54,7 +54,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>🎨 Kolam AI - Pattern Recreation</h1>
-        <p>Upload a Kolam image to see the recreated pattern and find similar designs</p>
+        <p>Upload a Kolam image to see your beautiful traditional design</p>
         
         <div className="upload-section">
           <input
@@ -92,35 +92,13 @@ function App() {
 
         {result && (
           <div className="results-section">
-            <h2>✨ Recreated Kolam Pattern</h2>
-            <p>Showing dots and skeleton structure from your uploaded image</p>
+            <h2>✨ Your Kolam Pattern</h2>
+            <p>Preserving the beautiful traditional design you uploaded</p>
             <img 
               src={`data:image/png;base64,${result.recreated_input}`} 
-              alt="Recreated Kolam" 
+              alt="Your Kolam Pattern" 
               className="result-image"
             />
-            
-            {result.similar && result.similar.length > 0 && (
-              <div className="similar-section">
-                <h3>🔍 Similar Traditional Kolam Designs</h3>
-                <p>Generated traditional patterns following the same grid rules (sorted by similarity)</p>
-                <div className="similar-grid">
-                  {result.similar.map((item, index) => (
-                    <div key={index} className="similar-item">
-                      <img 
-                        src={`data:image/jpeg;base64,${item.thumb_base64}`} 
-                        alt={`Similar design ${index + 1}`}
-                        className="similar-image"
-                      />
-                      <p className="similarity-score">
-                        Traditional Pattern {index + 1}<br/>
-                        Similarity: {(item.score * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </header>
