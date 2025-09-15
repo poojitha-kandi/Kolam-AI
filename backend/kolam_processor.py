@@ -48,74 +48,84 @@ class KolamAIProcessor:
         return self.gray_img, self.binary_img
     
     def step3_detect_dots(self):
-        """Step 3: Circle/Dot Detection using Hough Circle Transform with improved parameters"""
-        # Apply Gaussian blur for better circle detection
+        """Step 3: Circle/Dot Detection using Hough Circle Transform with Kolam-specific filtering"""
+        # Apply preprocessing for better dot detection
         blurred = cv2.medianBlur(self.gray_img, 5)
         
-        # Try multiple parameter sets for better dot detection
-        circles = None
+        # Create a mask to focus on potential dot areas
+        # Apply threshold to separate dots from lines
+        _, thresh = cv2.threshold(self.gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         
-        # Parameter set 1: For larger, clearer dots
-        circles1 = cv2.HoughCircles(
+        # Use morphological operations to isolate circular features
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        
+        # Detect circles with conservative parameters
+        circles = cv2.HoughCircles(
             blurred,
             cv2.HOUGH_GRADIENT,
             dp=1,
-            minDist=20,  # Reduced minimum distance between circles
-            param1=50,   # Reduced upper threshold for edge detection
-            param2=15,   # Reduced accumulator threshold
-            minRadius=3, # Smaller minimum radius
-            maxRadius=25 # Smaller maximum radius
+            minDist=50,  # Larger minimum distance to avoid clustering
+            param1=100,  # Higher edge threshold for precision
+            param2=30,   # Higher accumulator threshold for selectivity
+            minRadius=8, # Reasonable minimum for Kolam dots
+            maxRadius=25 # Reasonable maximum for Kolam dots
         )
         
-        # Parameter set 2: For smaller dots
-        circles2 = cv2.HoughCircles(
-            blurred,
-            cv2.HOUGH_GRADIENT,
-            dp=1,
-            minDist=15,
-            param1=40,
-            param2=12,
-            minRadius=2,
-            maxRadius=15
-        )
+        self.detected_dots = []
         
-        # Parameter set 3: For very small dots
-        circles3 = cv2.HoughCircles(
-            blurred,
-            cv2.HOUGH_GRADIENT,
-            dp=2,
-            minDist=10,
-            param1=30,
-            param2=10,
-            minRadius=1,
-            maxRadius=10
-        )
-        
-        # Combine all detected circles
-        all_circles = []
-        for circle_set in [circles1, circles2, circles3]:
-            if circle_set is not None:
-                circles_rounded = np.uint16(np.around(circle_set))
-                for circle in circles_rounded[0, :]:
-                    all_circles.append((circle[0], circle[1], circle[2]))
-        
-        # Remove duplicate circles (if centers are very close)
-        if all_circles:
-            filtered_circles = []
-            for circle in all_circles:
-                is_duplicate = False
-                for existing in filtered_circles:
-                    distance = np.sqrt((circle[0] - existing[0])**2 + (circle[1] - existing[1])**2)
-                    if distance < 15:  # If circles are too close, consider as duplicate
-                        is_duplicate = True
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            candidate_dots = []
+            
+            height, width = self.gray_img.shape
+            
+            for i in circles[0, :]:
+                x, y, r = int(i[0]), int(i[1]), int(i[2])
+                
+                # Quality check: analyze the region around the detected circle
+                roi_size = r * 2
+                x1, y1 = max(0, x - roi_size), max(0, y - roi_size)
+                x2, y2 = min(width, x + roi_size), min(height, y + roi_size)
+                
+                if x2 - x1 > 0 and y2 - y1 > 0:
+                    roi = self.gray_img[y1:y2, x1:x2]
+                    
+                    # Check if this looks like a proper dot
+                    # 1. Check contrast
+                    roi_std = np.std(roi)
+                    
+                    # 2. Check if it's roughly circular by comparing with a circle mask
+                    mask = np.zeros_like(roi)
+                    cv2.circle(mask, (roi_size, roi_size), r, 255, -1)
+                    
+                    if roi_std > 25:  # Good contrast
+                        # 3. Ensure it's not too close to image edges
+                        edge_margin = 40
+                        if (edge_margin < x < width - edge_margin and 
+                            edge_margin < y < height - edge_margin):
+                            candidate_dots.append((x, y, r, roi_std))
+            
+            # Sort by quality (contrast) and take the best ones
+            candidate_dots.sort(key=lambda dot: dot[3], reverse=True)
+            
+            # Filter to keep only well-separated, high-quality dots
+            final_dots = []
+            for x, y, r, quality in candidate_dots:
+                # Check distance from already selected dots
+                is_valid = True
+                for fx, fy, fr in final_dots:
+                    distance = np.sqrt((x - fx)**2 + (y - fy)**2)
+                    if distance < 60:  # Minimum separation
+                        is_valid = False
                         break
-                if not is_duplicate:
-                    filtered_circles.append(circle)
-            self.detected_dots = filtered_circles
-        else:
-            self.detected_dots = []
+                
+                if is_valid and len(final_dots) < 12:  # Reasonable maximum for a typical Kolam
+                    final_dots.append((x, y, r))
+            
+            self.detected_dots = final_dots
         
-        print(f"✓ Step 3: Dot detection complete - Found {len(self.detected_dots)} dots with improved parameters")
+        print(f"✓ Step 3: Dot detection complete - Found {len(self.detected_dots)} high-quality Kolam dots")
         return self.detected_dots
     
     def step4_skeletonization(self):
@@ -206,34 +216,39 @@ class KolamAIProcessor:
         return traced_paths
     
     def step7_mathematical_simulation(self):
-        """Step 7: Mathematical Kolam simulation using Lissajous curves"""
+        """Step 7: Mathematical Kolam simulation using enhanced Lissajous curves"""
         if self.grid_size is None:
             self.grid_size = max(3, int(np.sqrt(len(self.detected_dots))) if self.detected_dots else 3)
         
-        def generate_lissajous_kolam(grid_size, a=None, b=None, delta=None, num_points=1000):
-            """Generate Lissajous curve for Kolam pattern"""
-            if a is None: a = grid_size
-            if b is None: b = grid_size - 1
-            if delta is None: delta = np.pi / 2
+        def generate_kolam_lissajous(grid_size, pattern_type=1):
+            """Generate Kolam-style Lissajous curves with different patterns"""
+            t = np.linspace(0, 4 * np.pi, 2000)
             
-            t = np.linspace(0, 2 * np.pi, num_points)
-            x = (grid_size / 2) * np.sin(a * t + delta) + (grid_size / 2)
-            y = (grid_size / 2) * np.sin(b * t) + (grid_size / 2)
+            if pattern_type == 1:
+                # Primary interwoven pattern
+                a, b = grid_size, grid_size - 1
+                delta = np.pi / 2
+            elif pattern_type == 2:
+                # Secondary supporting pattern
+                a, b = grid_size + 1, grid_size
+                delta = 0
+            else:
+                # Tertiary decorative pattern
+                a, b = grid_size - 1, grid_size + 1
+                delta = np.pi / 4
+            
+            x = np.sin(a * t + delta)
+            y = np.sin(b * t)
             
             return list(zip(x, y))
         
-        # Generate multiple Lissajous patterns
+        # Generate multiple complementary patterns
         patterns = []
         for i in range(3):
-            pattern = generate_lissajous_kolam(
-                self.grid_size, 
-                a=self.grid_size + i, 
-                b=self.grid_size - 1 + i, 
-                delta=np.pi / (2 + i)
-            )
+            pattern = generate_kolam_lissajous(self.grid_size, i + 1)
             patterns.append(pattern)
         
-        print(f"✓ Step 7: Mathematical simulation complete - Generated {len(patterns)} Lissajous patterns")
+        print(f"✓ Step 7: Mathematical simulation complete - Generated {len(patterns)} enhanced Lissajous patterns")
         return patterns
     
     def step8_grid_analysis(self):
@@ -286,13 +301,26 @@ class KolamAIProcessor:
         binary_resized = cv2.resize(self.binary_img, (width, height))
         skeleton_resized = cv2.resize(self.skeleton_img, (width, height))
         
-        # Create dots visualization with improved visibility
+        # Create dots visualization with improved visibility and correct positioning
         dots_img = original_resized.copy()
-        for x, y, r in self.detected_dots:
-            # Scale coordinates
-            x_scaled = int(x * width / self.original_img.shape[1])
-            y_scaled = int(y * height / self.original_img.shape[0])
-            r_scaled = max(3, int(r * width / self.original_img.shape[1]))
+        
+        # Get original image dimensions
+        orig_height, orig_width = self.original_img.shape[:2]
+        
+        print(f"Debug: Original image size: {orig_width}x{orig_height}, Resized: {width}x{height}")
+        
+        for i, (x, y, r) in enumerate(self.detected_dots):
+            # Correctly scale coordinates from original image to resized image
+            x_scaled = int(x * width / orig_width)
+            y_scaled = int(y * height / orig_height)
+            r_scaled = max(3, int(r * width / orig_width))
+            
+            # Ensure coordinates are within bounds
+            x_scaled = max(0, min(x_scaled, width - 1))
+            y_scaled = max(0, min(y_scaled, height - 1))
+            
+            if i < 5:  # Debug first 5 dots
+                print(f"Debug dot {i}: orig({x},{y}) -> scaled({x_scaled},{y_scaled})")
             
             # Draw multiple circles for better visibility
             cv2.circle(dots_img, (x_scaled, y_scaled), r_scaled + 4, (0, 255, 0), 3)  # Green outer circle
@@ -300,7 +328,7 @@ class KolamAIProcessor:
             cv2.circle(dots_img, (x_scaled, y_scaled), r_scaled, (0, 0, 255), 2)       # Blue outline
             cv2.circle(dots_img, (x_scaled, y_scaled), 3, (255, 0, 0), -1)             # Red center dot
         
-        # Create mathematical simulation visualization with better visibility
+        # Create mathematical simulation visualization with proper Kolam patterns
         math_img = np.zeros((height, width, 3), dtype=np.uint8)
         math_img.fill(40)  # Dark gray background instead of black
         
@@ -309,41 +337,64 @@ class KolamAIProcessor:
             # Generate more points for smoother curves
             t = np.linspace(0, 4 * np.pi, 2000)  # More points and longer curve
             
-            # Create multiple overlapping patterns for richness
+            # Create mathematical Kolam patterns based on grid size
+            center_x, center_y = width // 2, height // 2
+            scale = min(width, height) // 3
+            
+            # Pattern 1: Main Lissajous curve (Purple)
+            a, b = self.grid_size, self.grid_size - 1
+            x_liss1 = center_x + scale * np.sin(a * t + np.pi/2)
+            y_liss1 = center_y + scale * np.sin(b * t)
+            
+            # Pattern 2: Secondary curve (Cyan)
+            x_liss2 = center_x + scale * 0.8 * np.sin((a+1) * t)
+            y_liss2 = center_y + scale * 0.8 * np.sin(b * t + np.pi/4)
+            
+            # Pattern 3: Tertiary curve (Yellow)
+            x_liss3 = center_x + scale * 0.6 * np.sin(a * t + np.pi/3)
+            y_liss3 = center_y + scale * 0.6 * np.sin((b+1) * t + np.pi/6)
+            
             patterns = [
-                (self.grid_size, self.grid_size - 1, np.pi/2, (255, 100, 255)),  # Purple
-                (self.grid_size + 1, self.grid_size, 0, (100, 255, 255)),       # Cyan
-                (self.grid_size - 1, self.grid_size + 1, np.pi/4, (255, 255, 100)) # Yellow
+                (x_liss1, y_liss1, (255, 100, 255), 3),  # Purple, thick
+                (x_liss2, y_liss2, (100, 255, 255), 2),  # Cyan, medium
+                (x_liss3, y_liss3, (255, 255, 100), 2)   # Yellow, medium
             ]
             
-            for a, b, delta, color in patterns:
-                x_liss = (self.grid_size / 2) * np.sin(a * t + delta) + (self.grid_size / 2)
-                y_liss = (self.grid_size / 2) * np.sin(b * t) + (self.grid_size / 2)
+            for x_curve, y_curve, color, thickness in patterns:
+                # Convert to integer coordinates and ensure bounds
+                x_scaled = np.clip(x_curve.astype(int), 0, width-1)
+                y_scaled = np.clip(y_curve.astype(int), 0, height-1)
                 
-                # Scale to image size with padding
-                padding = 50
-                x_scaled = ((x_liss + 1) * (width - 2*padding) / (self.grid_size + 2) + padding).astype(int)
-                y_scaled = ((y_liss + 1) * (height - 2*padding) / (self.grid_size + 2) + padding).astype(int)
-                
-                # Ensure coordinates are within bounds
-                x_scaled = np.clip(x_scaled, 0, width-1)
-                y_scaled = np.clip(y_scaled, 0, height-1)
-                
-                # Draw the curve with varying thickness
+                # Draw the curve
                 for i in range(len(x_scaled) - 1):
-                    cv2.line(math_img, (x_scaled[i], y_scaled[i]), (x_scaled[i+1], y_scaled[i+1]), color, 3)
+                    cv2.line(math_img, (x_scaled[i], y_scaled[i]), (x_scaled[i+1], y_scaled[i+1]), color, thickness)
             
-            # Add grid dots with better visibility
-            dot_spacing = min((width - 2*padding) // max(1, self.grid_size), (height - 2*padding) // max(1, self.grid_size))
-            for i in range(self.grid_size):
-                for j in range(self.grid_size):
-                    x_dot = padding + i * dot_spacing
-                    y_dot = padding + j * dot_spacing
-                    # Draw larger, more visible dots
-                    cv2.circle(math_img, (x_dot, y_dot), 12, (255, 255, 255), -1)
-                    cv2.circle(math_img, (x_dot, y_dot), 12, (0, 0, 0), 3)
-                    # Add small inner dot
-                    cv2.circle(math_img, (x_dot, y_dot), 4, (255, 0, 0), -1)
+            # Add strategic grid dots based on actual Kolam structure (not a full grid)
+            if self.grid_size >= 3:
+                # Only add key intersection points, not every grid point
+                key_points = [
+                    (center_x, center_y),  # Center
+                    (center_x - scale//2, center_y - scale//2),  # Top-left
+                    (center_x + scale//2, center_y - scale//2),  # Top-right
+                    (center_x - scale//2, center_y + scale//2),  # Bottom-left
+                    (center_x + scale//2, center_y + scale//2),  # Bottom-right
+                ]
+                
+                # Add some intermediate points for larger grids
+                if self.grid_size >= 4:
+                    key_points.extend([
+                        (center_x, center_y - scale//2),  # Top-center
+                        (center_x, center_y + scale//2),  # Bottom-center
+                        (center_x - scale//2, center_y),  # Left-center
+                        (center_x + scale//2, center_y),  # Right-center
+                    ])
+                
+                # Draw key dots
+                for x_dot, y_dot in key_points:
+                    if 0 <= x_dot < width and 0 <= y_dot < height:
+                        cv2.circle(math_img, (x_dot, y_dot), 8, (255, 255, 255), -1)
+                        cv2.circle(math_img, (x_dot, y_dot), 8, (0, 0, 0), 2)
+                        cv2.circle(math_img, (x_dot, y_dot), 3, (255, 0, 0), -1)
         
         # Create enhanced Kolam
         enhanced_img = self.create_enhanced_kolam()
