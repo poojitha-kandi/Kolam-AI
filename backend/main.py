@@ -7,6 +7,7 @@ import math
 import random
 import os
 from datetime import datetime
+from kolam_processor import KolamAIProcessor
 
 app = FastAPI()
 app.add_middleware(
@@ -408,35 +409,53 @@ def generate_similar_designs(grid_size, num_designs=4):
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
+    """
+    Complete Kolam AI Pipeline following the 9 steps from the notebook:
+    1. Upload Image 2. Preprocessing 3. Dot Detection 4. Skeletonization
+    5. Noise Removal 6. Path Tracing 7. Mathematical Simulation
+    8. Grid Analysis 9. Final Visualization
+    """
     content = await file.read()
     
-    # Step 1: Analyze the input image
-    grid_size, detected_dots = find_grid_size_from_image(content)
+    # Initialize the comprehensive Kolam AI processor
+    processor = KolamAIProcessor()
     
-    # Step 2: Use the original image as "recreated" (enhanced approach)
-    # Convert original image to array format for consistency
-    original_img = Image.open(io.BytesIO(content)).convert("RGB")
-    recreated = np.array(original_img)
+    # Execute the complete 9-step pipeline
+    results = processor.process_complete_pipeline(content)
     
-    # Step 3: Generate similar designs based on the ruleset
-    similar_designs = generate_similar_designs(grid_size, num_designs=4)
+    # Generate similar designs based on detected grid
+    similar_designs = generate_similar_designs(processor.grid_size, num_designs=4)
     
-    # Encode recreated image as base64 PNG and save to file
-    pil = Image.fromarray(recreated)
-    buf = io.BytesIO()
-    pil.save(buf, format="PNG")
-    recreated_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-    
-    # Save recreated image to generated_images folder
+    # Save the final visualization
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    recreated_filename = f"recreated_{timestamp}.png"
+    recreated_filename = f"kolam_pipeline_{timestamp}.png"
     recreated_filepath = os.path.join(GENERATED_IMAGES_DIR, recreated_filename)
-    pil.save(recreated_filepath)
+    
+    # Save the visualization to file
+    visualization_bytes = base64.b64decode(results['final_visualization'])
+    with open(recreated_filepath, 'wb') as f:
+        f.write(visualization_bytes)
     
     return JSONResponse({
-        "recreated_input": recreated_b64,  # Changed from "image_base64" to "recreated_input"
+        "recreated_input": results['final_visualization'],  # Complete pipeline visualization
         "similar": similar_designs,
-        "grid_size": grid_size,
-        "num_dots_detected": len(detected_dots),
-        "recreated_filename": recreated_filename
+        "grid_size": results['grid_size'],
+        "num_dots_detected": results['detected_dots_count'],
+        "recreated_filename": recreated_filename,
+        "pipeline_steps_completed": [
+            "✓ Image Upload & Reading",
+            "✓ Preprocessing (Grayscale & Binary Threshold)", 
+            "✓ Circle/Dot Detection (Hough Transform)",
+            "✓ Skeletonization (Line Thinning)",
+            "✓ Noise Removal & Cleanup",
+            "✓ Kolam Path Tracing (BFS/DFS)",
+            "✓ Mathematical Simulation (Lissajous Curves)",
+            "✓ Grid Size Analysis",
+            "✓ Final Visualization & Output"
+        ],
+        "processing_details": {
+            "original_image_shape": results['original_shape'],
+            "estimated_grid": f"{results['grid_size']}x{results['grid_size']}",
+            "total_dots_found": results['detected_dots_count']
+        }
     })
