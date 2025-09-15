@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import io
 import base64
+import os
+from datetime import datetime
 from PIL import Image
 from collections import deque
 import math
@@ -48,85 +50,189 @@ class KolamAIProcessor:
         return self.gray_img, self.binary_img
     
     def step3_detect_dots(self):
-        """Step 3: Circle/Dot Detection using Hough Circle Transform with Kolam-specific filtering"""
-        # Apply preprocessing for better dot detection
+        """Step 3: Precise Kolam Dot Detection - Based on proven notebook algorithm"""
+        print("🎯 Detecting Kolam dots using notebook-proven algorithm...")
+        
+        height, width = self.gray_img.shape
+        
+        # Use the exact same approach as the working notebook
+        # Apply median blur for noise reduction (same as notebook)
         blurred = cv2.medianBlur(self.gray_img, 5)
         
-        # Create a mask to focus on potential dot areas
-        # Apply threshold to separate dots from lines
-        _, thresh = cv2.threshold(self.gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        
-        # Use morphological operations to isolate circular features
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        
-        # Detect circles with conservative parameters
+        # Use Hough Circle Transform with notebook-proven parameters
         circles = cv2.HoughCircles(
-            blurred,
+            self.gray_img,  # Use grayscale directly (like notebook)
             cv2.HOUGH_GRADIENT,
             dp=1,
-            minDist=50,  # Larger minimum distance to avoid clustering
-            param1=100,  # Higher edge threshold for precision
-            param2=30,   # Higher accumulator threshold for selectivity
-            minRadius=8, # Reasonable minimum for Kolam dots
-            maxRadius=25 # Reasonable maximum for Kolam dots
+            minDist=20,     # Same as notebook
+            param1=50,      # Same as notebook  
+            param2=12,      # Same as notebook - key parameter for sensitivity
+            minRadius=5,    # Same as notebook
+            maxRadius=15    # Same as notebook
         )
         
         self.detected_dots = []
         
         if circles is not None:
+            # Convert the circle parameters to integers (same as notebook)
             circles = np.uint16(np.around(circles))
-            candidate_dots = []
             
-            height, width = self.gray_img.shape
+            print(f"📊 Hough Circles found: {len(circles[0])} dots using notebook parameters")
+            
+            # Simple filtering to ensure quality dots
+            candidate_dots = []
             
             for i in circles[0, :]:
                 x, y, r = int(i[0]), int(i[1]), int(i[2])
                 
-                # Quality check: analyze the region around the detected circle
-                roi_size = r * 2
-                x1, y1 = max(0, x - roi_size), max(0, y - roi_size)
-                x2, y2 = min(width, x + roi_size), min(height, y + roi_size)
-                
-                if x2 - x1 > 0 and y2 - y1 > 0:
-                    roi = self.gray_img[y1:y2, x1:x2]
+                # Basic edge margin check
+                edge_margin = 15
+                if (edge_margin <= x <= width - edge_margin and 
+                    edge_margin <= y <= height - edge_margin):
                     
-                    # Check if this looks like a proper dot
-                    # 1. Check contrast
-                    roi_std = np.std(roi)
+                    # Basic quality check - ensure it's in a reasonable area
+                    roi_size = max(r * 2, 10)
+                    x1, y1 = max(0, x - roi_size), max(0, y - roi_size)
+                    x2, y2 = min(width, x + roi_size), min(height, y + roi_size)
                     
-                    # 2. Check if it's roughly circular by comparing with a circle mask
-                    mask = np.zeros_like(roi)
-                    cv2.circle(mask, (roi_size, roi_size), r, 255, -1)
-                    
-                    if roi_std > 25:  # Good contrast
-                        # 3. Ensure it's not too close to image edges
-                        edge_margin = 40
-                        if (edge_margin < x < width - edge_margin and 
-                            edge_margin < y < height - edge_margin):
+                    if x2 > x1 and y2 > y1:
+                        roi = self.gray_img[y1:y2, x1:x2]
+                        roi_std = np.std(roi)
+                        
+                        # Only require minimal contrast (more permissive)
+                        if roi_std > 5:  # Very low threshold
                             candidate_dots.append((x, y, r, roi_std))
             
-            # Sort by quality (contrast) and take the best ones
+            # Sort by quality (contrast) but keep most dots
             candidate_dots.sort(key=lambda dot: dot[3], reverse=True)
             
-            # Filter to keep only well-separated, high-quality dots
+            # Apply minimal spacing constraints - more permissive than before
             final_dots = []
+            min_spacing = 15  # Reduced minimum spacing
+            
             for x, y, r, quality in candidate_dots:
-                # Check distance from already selected dots
-                is_valid = True
+                # Check spacing from already selected dots
+                valid_spacing = True
                 for fx, fy, fr in final_dots:
                     distance = np.sqrt((x - fx)**2 + (y - fy)**2)
-                    if distance < 60:  # Minimum separation
-                        is_valid = False
+                    if distance < min_spacing:
+                        valid_spacing = False
                         break
                 
-                if is_valid and len(final_dots) < 12:  # Reasonable maximum for a typical Kolam
+                if valid_spacing:
                     final_dots.append((x, y, r))
             
             self.detected_dots = final_dots
+            
+        else:
+            print("❌ No circles detected with notebook parameters")
+            
+            # Fallback: Try with even more sensitive parameters
+            print("🔄 Trying more sensitive detection...")
+            
+            circles_sensitive = cv2.HoughCircles(
+                blurred,
+                cv2.HOUGH_GRADIENT,
+                dp=1,
+                minDist=15,     # Reduced min distance
+                param1=30,      # Lower edge threshold
+                param2=8,       # Even lower accumulator threshold
+                minRadius=3,    # Smaller minimum radius
+                maxRadius=20    # Larger maximum radius
+            )
+            
+            if circles_sensitive is not None:
+                circles_sensitive = np.uint16(np.around(circles_sensitive))
+                print(f"📊 Sensitive detection found: {len(circles_sensitive[0])} dots")
+                
+                # Take the best dots from sensitive detection
+                for i in circles_sensitive[0, :]:
+                    x, y, r = int(i[0]), int(i[1]), int(i[2])
+                    
+                    edge_margin = 10
+                    if (edge_margin <= x <= width - edge_margin and 
+                        edge_margin <= y <= height - edge_margin):
+                        self.detected_dots.append((x, y, r))
+                        
+                        if len(self.detected_dots) >= 9:  # Limit to 9 dots
+                            break
+            
+            # Final fallback: Use grid estimation if still no dots
+            if len(self.detected_dots) == 0:
+                print("🔄 Final fallback: Grid estimation...")
+                
+                # Create a 3x3 grid estimation
+                margin = min(width, height) // 6
+                grid_width = width - 2 * margin
+                grid_height = height - 2 * margin
+                
+                for i in range(3):
+                    for j in range(3):
+                        x = margin + (grid_width * (i + 1)) // 4
+                        y = margin + (grid_height * (j + 1)) // 4
+                        r = max(5, min(width, height) // 60)
+                        self.detected_dots.append((x, y, r))
         
-        print(f"✓ Step 3: Dot detection complete - Found {len(self.detected_dots)} high-quality Kolam dots")
+        # Ensure we don't have too many dots (limit to reasonable number)
+        if len(self.detected_dots) > 12:
+            # Keep the first 12 dots (they're already sorted by quality)
+            self.detected_dots = self.detected_dots[:12]
+        
+        print(f"✅ Step 3: Notebook-based dot detection complete - Found {len(self.detected_dots)} dots")
+        print(f"   📍 Dot positions: {[(x, y) for x, y, r in self.detected_dots[:3]]}{'...' if len(self.detected_dots) > 3 else ''}")
+        
         return self.detected_dots
+    
+    def debug_dot_detection(self, save_debug_images=True):
+        """Debug function to visualize dot detection process"""
+        if self.gray_img is None:
+            print("❌ No grayscale image available for debugging")
+            return
+        
+        print("🔬 Debug: Creating dot detection visualization...")
+        
+        height, width = self.gray_img.shape
+        
+        # Create debug visualization
+        debug_img = cv2.cvtColor(self.gray_img, cv2.COLOR_GRAY2BGR)
+        
+        # Draw all detected dots with different colors based on quality
+        for i, (x, y, r) in enumerate(self.detected_dots):
+            # Color based on detection order (quality ranking)
+            if i == 0:
+                color = (0, 255, 0)      # Best quality: Green
+            elif i < 3:
+                color = (0, 255, 255)    # High quality: Yellow
+            elif i < 6:
+                color = (255, 165, 0)    # Medium quality: Orange
+            else:
+                color = (255, 0, 255)    # Lower quality: Magenta
+            
+            # Draw detection circle
+            cv2.circle(debug_img, (x, y), r + 3, color, 2)
+            cv2.circle(debug_img, (x, y), 3, (0, 0, 255), -1)  # Red center
+            
+            # Add number label
+            cv2.putText(debug_img, str(i+1), (x-10, y-r-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        
+        # Add statistics text
+        text_lines = [
+            f"Total Dots Detected: {len(self.detected_dots)}",
+            f"Image Size: {width}x{height}",
+            f"Grid Estimate: {self.grid_size}x{self.grid_size}" if self.grid_size else "Grid: Not calculated"
+        ]
+        
+        for i, line in enumerate(text_lines):
+            cv2.putText(debug_img, line, (10, 30 + i*25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
+        if save_debug_images:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            debug_filename = f"debug_dots_{timestamp}.png"
+            debug_path = os.path.join("generated_images", debug_filename)
+            cv2.imwrite(debug_path, debug_img)
+            print(f"💾 Debug image saved: {debug_path}")
+        
+        return debug_img
     
     def step4_skeletonization(self):
         """Step 4: Skeletonization to thin lines to single-pixel width using OpenCV"""
@@ -460,6 +566,10 @@ class KolamAIProcessor:
         self.step1_upload_image(image_bytes)
         self.step2_preprocessing()
         self.step3_detect_dots()
+        
+        # Add debug visualization for dot detection
+        self.debug_dot_detection(save_debug_images=True)
+        
         self.step4_skeletonization()
         self.step5_noise_removal()
         self.step6_trace_kolam_path()
