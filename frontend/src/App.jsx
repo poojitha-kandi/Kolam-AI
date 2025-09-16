@@ -3,12 +3,14 @@ import './App.css';
 import KolamAnimation from './components/KolamAnimation';
 import SkeletonKolamAnimation from './components/SkeletonKolamAnimation';
 import AnimationDemo from './components/AnimationDemo';
+import MandalaColoring from './components/MandalaColoring';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [currentView, setCurrentView] = useState('kolam'); // 'kolam' or 'mandala'
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -55,8 +57,33 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>🎨 Kolam AI - Pattern Recreation</h1>
+      {/* Navigation Header */}
+      <nav className="nav-header">
+        <div className="nav-container">
+          <h1 className="nav-title">🎨 Kolam AI Studio</h1>
+          <div className="nav-buttons">
+            <button 
+              onClick={() => setCurrentView('kolam')}
+              className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
+            >
+              Kolam Recreation
+            </button>
+            <button 
+              onClick={() => setCurrentView('mandala')}
+              className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
+            >
+              Mandala Coloring
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      {currentView === 'mandala' ? (
+        <MandalaColoring />
+      ) : (
+        <header className="App-header">
+          <h1>🎨 Kolam AI - Pattern Recreation</h1>
         <p>Upload a Kolam image to see your beautiful traditional design</p>
         
         <div className="upload-section">
@@ -205,7 +232,8 @@ function App() {
 
         {/* Interactive Animation Demo */}
         <AnimationDemo />
-      </header>
+        </header>
+      )}
     </div>
   );
 }

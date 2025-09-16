@@ -1,0 +1,36 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .mandala-region { 
+        fill: none; 
+        stroke: #333; 
+        stroke-width: 1; 
+        transition: all 0.2s ease;
+      }
+      .mandala-region:hover {
+        stroke-width: 2;
+      }
+    </style>
+  </defs>
+  
+  <!-- Center circle -->
+  <circle cx="200" cy="200" r="30" class="mandala-region" data-region="center" />
+  
+  <!-- Inner petals -->
+  <path d="M200,170 Q230,180 220,200 Q230,220 200,230 Q170,220 180,200 Q170,180 200,170 Z" 
+        class="mandala-region" data-region="petal-1" />
+  <path d="M230,200 Q220,230 200,220 Q180,230 170,200 Q180,170 200,180 Q220,170 230,200 Z" 
+        class="mandala-region" data-region="petal-2" />
+  
+  <!-- Outer petals -->
+  <ellipse cx="200" cy="120" rx="20" ry="40" class="mandala-region" data-region="outer-1" />
+  <ellipse cx="280" cy="200" rx="40" ry="20" class="mandala-region" data-region="outer-2" />
+  <ellipse cx="200" cy="280" rx="20" ry="40" class="mandala-region" data-region="outer-3" />
+  <ellipse cx="120" cy="200" rx="40" ry="20" class="mandala-region" data-region="outer-4" />
+  
+  <!-- Corner decorations -->
+  <polygon points="100,100 120,80 140,100 120,120" class="mandala-region" id="corner-1" />
+  <polygon points="300,100 320,80 340,100 320,120" class="mandala-region" id="corner-2" />
+  <polygon points="300,300 320,280 340,300 320,320" class="mandala-region" id="corner-3" />
+  <polygon points="100,300 120,280 140,300 120,320" class="mandala-region" id="corner-4" />
+</svg>

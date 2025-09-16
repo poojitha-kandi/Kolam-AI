@@ -1,0 +1,89 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(200,200)">
+    <!-- Center star -->
+    <polygon points="0,-30 9,-9 30,-9 15,3 24,24 0,12 -24,24 -15,3 -30,-9 -9,-9" 
+             fill="none" stroke="#333" stroke-width="2" data-region="center-star"/>
+    
+    <!-- Inner ring of stars -->
+    <g data-region="inner-stars">
+      <g transform="translate(0,-70) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-1"/>
+      </g>
+      <g transform="translate(49,-49) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-2"/>
+      </g>
+      <g transform="translate(70,0) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-3"/>
+      </g>
+      <g transform="translate(49,49) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-4"/>
+      </g>
+      <g transform="translate(0,70) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-5"/>
+      </g>
+      <g transform="translate(-49,49) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-6"/>
+      </g>
+      <g transform="translate(-70,0) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-7"/>
+      </g>
+      <g transform="translate(-49,-49) scale(0.7)">
+        <polygon points="0,-20 6,-6 20,-6 10,2 16,16 0,8 -16,16 -10,2 -20,-6 -6,-6" 
+                 fill="none" stroke="#333" stroke-width="2" data-region="inner-star-8"/>
+      </g>
+    </g>
+    
+    <!-- Middle ring -->
+    <circle cx="0" cy="0" r="100" fill="none" stroke="#333" stroke-width="2" data-region="middle-ring"/>
+    
+    <!-- Outer diamond shapes -->
+    <g data-region="outer-diamonds">
+      <polygon points="0,-130 15,-115 0,-100 -15,-115" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-1"/>
+      <polygon points="92,-92 107,-77 92,-62 77,-77" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-2"/>
+      <polygon points="130,0 115,15 100,0 115,-15" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-3"/>
+      <polygon points="92,92 77,107 92,122 107,107" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-4"/>
+      <polygon points="0,130 -15,115 0,100 15,115" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-5"/>
+      <polygon points="-92,92 -107,77 -92,62 -77,77" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-6"/>
+      <polygon points="-130,0 -115,-15 -100,0 -115,15" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-7"/>
+      <polygon points="-92,-92 -77,-107 -92,-122 -107,-107" 
+               fill="none" stroke="#333" stroke-width="2" data-region="diamond-8"/>
+    </g>
+    
+    <!-- Outer decorative triangles -->
+    <g data-region="outer-triangles">
+      <polygon points="0,-160 10,-140 -10,-140" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-1"/>
+      <polygon points="113,-113 133,-103 123,-123" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-2"/>
+      <polygon points="160,0 140,10 140,-10" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-3"/>
+      <polygon points="113,113 103,133 123,123" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-4"/>
+      <polygon points="0,160 -10,140 10,140" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-5"/>
+      <polygon points="-113,113 -133,103 -123,123" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-6"/>
+      <polygon points="-160,0 -140,-10 -140,10" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-7"/>
+      <polygon points="-113,-113 -103,-133 -123,-123" 
+               fill="none" stroke="#333" stroke-width="2" data-region="triangle-8"/>
+    </g>
+    
+    <!-- Outer boundary -->
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#333" stroke-width="3" data-region="boundary"/>
+  </g>
+</svg>
