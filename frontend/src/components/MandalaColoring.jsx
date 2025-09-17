@@ -69,20 +69,33 @@ const MandalaColoring = () => {
         setUploadedFile(source);
       }
       
-      // Process SVG to ensure white outlines for dark theme visibility
+      // Process SVG to ensure white outlines for dark theme visibility with sharp rendering
       const parser = new DOMParser();
       const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
       const svgElement = svgDoc.querySelector('svg');
       
       if (svgElement) {
-        // Set all path, circle, polygon, rect, etc. elements to have white stroke
+        // Add sharp rendering attributes to the SVG root
+        svgElement.setAttribute('shape-rendering', 'crispEdges');
+        svgElement.setAttribute('style', (svgElement.getAttribute('style') || '') + '; image-rendering: crisp-edges;');
+        
+        // Set all drawable elements to have white stroke with sharp rendering
         const drawableElements = svgElement.querySelectorAll('path, circle, polygon, rect, ellipse, line, polyline, g');
-        drawableElements.forEach(element => {
-          // Only set stroke if the element doesn't already have one, or if it's black/dark
+        drawableElements.forEach((element, index) => {
+          // Ensure white stroke for visibility
           const currentStroke = element.getAttribute('stroke');
           if (!currentStroke || currentStroke === 'none' || currentStroke === '#000' || currentStroke === '#000000' || currentStroke === 'black') {
             element.setAttribute('stroke', '#ffffff');
-            element.setAttribute('stroke-width', element.getAttribute('stroke-width') || '1');
+            element.setAttribute('stroke-width', element.getAttribute('stroke-width') || '1.5');
+          }
+          
+          // Add sharp rendering attributes for crisp outlines
+          element.setAttribute('shape-rendering', 'crispEdges');
+          element.setAttribute('vector-effect', 'non-scaling-stroke');
+          
+          // Ensure proper region identification for coloring
+          if (!element.getAttribute('data-region') && !element.id) {
+            element.setAttribute('id', `region-${index}`);
           }
         });
         
@@ -125,17 +138,23 @@ const MandalaColoring = () => {
     // Inject SVG content
     svgRef.current.innerHTML = svgContent;
     
-    // Add event listeners to regions and ensure white strokes for visibility
+    // Add event listeners to regions and ensure white strokes for visibility with sharp rendering
     const regions = svgRef.current.querySelectorAll('[data-region], [id]');
     regions.forEach(region => {
       region.style.cursor = 'pointer';
       
-      // Ensure white stroke for dark theme visibility
+      // Ensure white stroke for dark theme visibility with enhanced properties
       const currentStroke = region.getAttribute('stroke');
       if (!currentStroke || currentStroke === 'none' || currentStroke === '#000' || currentStroke === '#000000' || currentStroke === 'black') {
         region.setAttribute('stroke', '#ffffff');
         region.style.stroke = '#ffffff';
+        region.setAttribute('stroke-width', region.getAttribute('stroke-width') || '1.5');
       }
+      
+      // Add sharp rendering for crisp outlines
+      region.setAttribute('shape-rendering', 'crispEdges');
+      region.setAttribute('vector-effect', 'non-scaling-stroke');
+      region.style.shapeRendering = 'crispEdges';
       
       region.addEventListener('click', handleRegionClick);
       region.addEventListener('touchstart', handleRegionTouch);
@@ -323,25 +342,27 @@ const MandalaColoring = () => {
     URL.revokeObjectURL(url);
   }, []);
 
-  // Hover effects
+  // Hover effects with sharp white outlines
   const handleRegionHover = useCallback((event) => {
     const region = event.target.closest('[data-region], [id]');
     if (!region) return;
     
-    // Use white stroke with increased width for hover effect
+    // Use white stroke with increased width for hover effect, maintaining sharpness
     region.style.stroke = '#ffffff';
-    region.style.strokeWidth = '3';
-    region.style.opacity = '0.8';
+    region.style.strokeWidth = '2.5';
+    region.style.opacity = '0.9';
+    region.style.shapeRendering = 'crispEdges';
   }, []);
 
   const handleRegionLeave = useCallback((event) => {
     const region = event.target.closest('[data-region], [id]');
     if (!region) return;
     
-    // Return to default white stroke
+    // Return to default white stroke with sharp rendering
     region.style.stroke = '#ffffff';
-    region.style.strokeWidth = '1';
+    region.style.strokeWidth = '1.5';
     region.style.opacity = '1';
+    region.style.shapeRendering = 'crispEdges';
   }, []);
 
   // Zoom functionality
@@ -414,13 +435,110 @@ const MandalaColoring = () => {
   // File upload handling
   const handleFileUpload = useCallback((event) => {
     const file = event.target.files[0];
-    if (file && file.type === 'image/svg+xml') {
-      setSelectedMandala('');
-      loadSVG(file);
-    } else {
-      alert('Please upload a valid SVG file.');
+    if (file) {
+      const fileType = file.type;
+      const validTypes = ['image/svg+xml', 'image/jpeg', 'image/jpg', 'image/png'];
+      
+      if (validTypes.includes(fileType) || file.name.toLowerCase().endsWith('.svg') || 
+          file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg') || 
+          file.name.toLowerCase().endsWith('.png')) {
+        setSelectedMandala('');
+        
+        if (fileType === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+          // Handle SVG files directly
+          loadSVG(file);
+        } else {
+          // Handle JPG/PNG files by converting to colorable SVG
+          convertImageToColorableSVG(file);
+        }
+      } else {
+        alert('Please upload a valid SVG, JPG, JPEG, or PNG file.');
+      }
     }
   }, [loadSVG]);
+
+  // Convert JPG/PNG images to colorable SVG with grid-based regions
+  const convertImageToColorableSVG = useCallback(async (file) => {
+    setIsLoading(true);
+    try {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      img.onload = () => {
+        // Set canvas size (max 600px for performance while maintaining quality)
+        const maxSize = 600;
+        const scale = Math.min(maxSize / img.width, maxSize / img.height);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        // Draw image with crisp rendering
+        ctx.imageSmoothingEnabled = false; // Ensure sharp edges
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Create SVG with grid-based coloring regions
+        const gridSize = 15; // Smaller grid for finer control
+        const cols = Math.ceil(canvas.width / gridSize);
+        const rows = Math.ceil(canvas.height / gridSize);
+        
+        let svgContent = `<svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg" style="image-rendering: crisp-edges;">`;
+        
+        // Add background image with sharp rendering
+        const dataUrl = canvas.toDataURL('image/png');
+        svgContent += `<image href="${dataUrl}" width="${canvas.width}" height="${canvas.height}" opacity="0.8" style="image-rendering: crisp-edges;"/>`;
+        
+        // Add grid of colorable rectangles with white outlines
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const x = col * gridSize;
+            const y = row * gridSize;
+            const width = Math.min(gridSize, canvas.width - x);
+            const height = Math.min(gridSize, canvas.height - y);
+            
+            svgContent += `<rect 
+              id="grid-${row}-${col}" 
+              x="${x}" 
+              y="${y}" 
+              width="${width}" 
+              height="${height}" 
+              fill="none" 
+              stroke="#ffffff" 
+              stroke-width="0.5" 
+              stroke-opacity="0.4"
+              vector-effect="non-scaling-stroke"
+              shape-rendering="crispEdges"
+              data-region="grid-${row}-${col}"
+            />`;
+          }
+        }
+        
+        svgContent += '</svg>';
+        
+        // Set the SVG content and mark as uploaded
+        setSvgContent(svgContent);
+        setUploadedFile(file);
+        
+        // Reset view state
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        setHistory([]);
+        setHistoryIndex(-1);
+        
+        setIsLoading(false);
+      };
+      
+      img.onerror = () => {
+        setIsLoading(false);
+        alert('Failed to load image. Please try a different file.');
+      };
+      
+      img.src = URL.createObjectURL(file);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error converting image:', error);
+      alert('Failed to process image. Please try again.');
+    }
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -497,7 +615,7 @@ const MandalaColoring = () => {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".svg,image/svg+xml"
+                  accept=".svg,.jpg,.jpeg,.png,image/svg+xml,image/jpeg,image/jpg,image/png"
                   onChange={handleFileUpload}
                   style={{ display: 'none' }}
                 />
@@ -506,7 +624,7 @@ const MandalaColoring = () => {
                   className="upload-btn"
                 >
                   <Upload size={16} />
-                  Upload SVG
+                  Upload Image
                 </button>
                 {uploadedFile && (
                   <p className="upload-info">📄 {uploadedFile.name}</p>
@@ -951,6 +1069,9 @@ const MandalaColoring = () => {
           position: relative;
           background: rgba(250, 250, 250, 0.05);
           user-select: none;
+          image-rendering: crisp-edges;
+          image-rendering: -webkit-crisp-edges;
+          image-rendering: pixelated;
         }
 
         .loading {
@@ -974,11 +1095,17 @@ const MandalaColoring = () => {
           height: 100%;
           transition: transform 0.1s ease-out;
           transform-origin: center center;
+          image-rendering: crisp-edges;
+          image-rendering: -webkit-crisp-edges;
+          image-rendering: pixelated;
         }
 
         .svg-content {
           max-width: 100%;
           max-height: 100%;
+          image-rendering: crisp-edges;
+          image-rendering: -webkit-crisp-edges;
+          image-rendering: pixelated;
         }
 
         .svg-content svg {
@@ -986,6 +1113,15 @@ const MandalaColoring = () => {
           max-height: 600px;
           width: auto;
           height: auto;
+          shape-rendering: crispEdges;
+          image-rendering: crisp-edges;
+          image-rendering: -webkit-crisp-edges;
+          image-rendering: pixelated;
+        }
+
+        .svg-content svg * {
+          shape-rendering: crispEdges;
+          vector-effect: non-scaling-stroke;
         }
 
         .instructions {
