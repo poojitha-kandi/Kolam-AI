@@ -1,53 +1,303 @@
-import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import React from 'react';
+import { Palette } from 'lucide-react';
 
-const ColorPalette = ({ selectedColor, onColorSelect }) => {
-  const [customColor, setCustomColor] = useState('#000000');
+// Enhanced color palette with more variety
+const COLOR_PALETTE = [
+  // Primary colors
+  '#FF0000', '#FF8000', '#FFFF00', '#80FF00', '#00FF00', '#00FF80',
+  '#00FFFF', '#0080FF', '#0000FF', '#8000FF', '#FF00FF', '#FF0080',
+  
+  // Secondary/muted colors
+  '#800000', '#804000', '#808000', '#408000', '#008000', '#008040',
+  '#008080', '#004080', '#000080', '#400080', '#800080', '#800040',
+  
+  // Pastels
+  '#FFB6C1', '#FFE4B5', '#FFFFE0', '#98FB98', '#87CEEB', '#DDA0DD',
+  '#F0E68C', '#FFA07A', '#20B2AA', '#87CEFA', '#778899', '#B0C4DE',
+  
+  // Dark tones
+  '#2F4F4F', '#696969', '#708090', '#778899', '#A9A9A9', '#C0C0C0',
+  '#D3D3D3', '#DCDCDC', '#F5F5F5', '#FFFFFF', '#000000', '#1C1C1C'
+];
 
-  // Predefined color palette
-  const colors = [
-    // Reds
-    '#FF6B6B', '#FF4757', '#FF3838', '#FF6348', '#FF7675',
-    
-    // Oranges & Yellows
-    '#FFA726', '#FFB74D', '#FFCC02', '#FFD93D', '#FFE066',
-    
-    // Greens
-    '#6BCF7F', '#4ECDC4', '#26DE81', '#20BF6B', '#0FB9B1',
-    
-    // Blues
-    '#3742FA', '#2F3542', '#40739E', '#487EB0', '#7bed9f',
-    
-    // Purples & Pinks
-    '#5F27CD', '#8B5CF6', '#A855F7', '#C084FC', '#DDD6FE',
-    '#FF6B9D', '#F8BBD9', '#F48FB1', '#F06292', '#EC407A',
-    
-    // Neutrals
-    '#2C2C54', '#40407A', '#706FD3', '#95A5A6', '#BDC3C7',
-    '#34495E', '#2C3E50', '#7F8C8D', '#95A5A6', '#ECF0F1',
-    
-    // Earth tones
-    '#8B4513', '#A0522D', '#CD853F', '#DEB887', '#F4A460',
-    
-    // Special colors
-    '#000000', '#FFFFFF', '#FFD700', '#C0C0C0', '#FF1493'
-  ];
-
-  const handleColorClick = (color) => {
-    onColorSelect(color);
+const ColorPalette = ({ 
+  selectedColors = [], 
+  onColorSelect, 
+  maxColors = 10,
+  className = '' 
+}) => {
+  
+  const handleColorSelect = (color) => {
+    if (selectedColors.includes(color)) {
+      // Remove color if already selected
+      onColorSelect(selectedColors.filter(c => c !== color));
+    } else if (selectedColors.length < maxColors) {
+      // Add color if under limit
+      onColorSelect([...selectedColors, color]);
+    } else {
+      // Replace last color if at limit
+      onColorSelect([...selectedColors.slice(0, -1), color]);
+    }
   };
 
-  const handleCustomColorChange = (e) => {
-    const color = e.target.value;
-    setCustomColor(color);
-    onColorSelect(color);
+  const clearSelectedColors = () => {
+    onColorSelect([]);
   };
 
   return (
-    <div className="space-y-4">
-      {/* Predefined Colors */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Basic Colors</h3>
+    <div className={`color-palette-container ${className}`}>
+      <div className="palette-header">
+        <h3>
+          <Palette size={18} />
+          Color Palette
+        </h3>
+        <span className="color-count">
+          {selectedColors.length}/{maxColors} selected
+        </span>
+      </div>
+
+      {/* Selected Colors Display */}
+      {selectedColors.length > 0 && (
+        <div className="selected-colors">
+          <div className="selected-colors-header">
+            <span>Selected Colors:</span>
+            <button 
+              onClick={clearSelectedColors}
+              className="clear-colors-btn"
+              title="Clear all selected colors"
+            >
+              Clear All
+            </button>
+          </div>
+          <div className="selected-colors-grid">
+            {selectedColors.map((color, index) => (
+              <div
+                key={`selected-${color}-${index}`}
+                className="selected-color-item"
+                style={{ backgroundColor: color }}
+                onClick={() => handleColorSelect(color)}
+                title={`Remove ${color}`}
+              >
+                <span className="color-label">{index + 1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Color Grid */}
+      <div className="color-grid">
+        {COLOR_PALETTE.map((color, index) => (
+          <div
+            key={`palette-${color}-${index}`}
+            className={`color-swatch ${selectedColors.includes(color) ? 'selected' : ''}`}
+            style={{ backgroundColor: color }}
+            onClick={() => handleColorSelect(color)}
+            title={color}
+          >
+            {selectedColors.includes(color) && (
+              <span className="selection-indicator">
+                {selectedColors.indexOf(color) + 1}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <style jsx>{`
+        .color-palette-container {
+          background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
+          border: 1px solid rgba(247, 239, 230, 0.1);
+          border-radius: 12px;
+          padding: 1.5rem;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(10px);
+        }
+
+        .palette-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .palette-header h3 {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #f7efe6;
+        }
+
+        .color-count {
+          font-size: 0.9rem;
+          color: rgba(247, 239, 230, 0.7);
+          background: rgba(255, 214, 138, 0.1);
+          padding: 0.25rem 0.75rem;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 214, 138, 0.3);
+        }
+
+        .selected-colors {
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: rgba(255, 214, 138, 0.05);
+          border: 1px solid rgba(255, 214, 138, 0.2);
+          border-radius: 8px;
+        }
+
+        .selected-colors-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          font-size: 0.9rem;
+          color: #f7efe6;
+        }
+
+        .clear-colors-btn {
+          background: transparent;
+          border: 1px solid rgba(239, 68, 68, 0.6);
+          color: #f87171;
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.8rem;
+          transition: all 0.2s;
+        }
+
+        .clear-colors-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.8);
+        }
+
+        .selected-colors-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+          gap: 0.5rem;
+          max-width: 100%;
+        }
+
+        .selected-color-item {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(255, 214, 138, 0.8);
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          position: relative;
+        }
+
+        .selected-color-item:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(255, 214, 138, 0.4);
+        }
+
+        .color-label {
+          color: white;
+          font-size: 0.8rem;
+          font-weight: bold;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+          background: rgba(0,0,0,0.3);
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .color-grid {
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 0.5rem;
+        }
+
+        .color-swatch {
+          width: 100%;
+          height: 2.5rem;
+          border: 2px solid rgba(247, 239, 230, 0.3);
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .color-swatch:hover {
+          transform: scale(1.05);
+          box-shadow: 0 2px 8px rgba(255, 214, 138, 0.4);
+          border-color: rgba(255, 214, 138, 0.6);
+        }
+
+        .color-swatch.selected {
+          border-color: #ffd68a;
+          border-width: 3px;
+          transform: scale(1.05);
+          box-shadow: 0 2px 8px rgba(255, 214, 138, 0.6);
+        }
+
+        .selection-indicator {
+          color: white;
+          font-size: 0.8rem;
+          font-weight: bold;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+          background: rgba(0,0,0,0.5);
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+          .color-grid {
+            grid-template-columns: repeat(6, 1fr);
+          }
+          
+          .selected-colors-grid {
+            grid-template-columns: repeat(5, 1fr);
+          }
+
+          .color-swatch {
+            height: 2rem;
+          }
+
+          .selected-color-item {
+            width: 35px;
+            height: 35px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .color-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+          
+          .selected-colors-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+
+          .palette-header {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default ColorPalette;
         <div className="grid grid-cols-5 gap-2">
           {colors.map((color, index) => (
             <button

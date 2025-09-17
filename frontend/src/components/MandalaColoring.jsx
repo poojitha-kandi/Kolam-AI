@@ -69,6 +69,28 @@ const MandalaColoring = () => {
         setUploadedFile(source);
       }
       
+      // Process SVG to ensure white outlines for dark theme visibility
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+      const svgElement = svgDoc.querySelector('svg');
+      
+      if (svgElement) {
+        // Set all path, circle, polygon, rect, etc. elements to have white stroke
+        const drawableElements = svgElement.querySelectorAll('path, circle, polygon, rect, ellipse, line, polyline, g');
+        drawableElements.forEach(element => {
+          // Only set stroke if the element doesn't already have one, or if it's black/dark
+          const currentStroke = element.getAttribute('stroke');
+          if (!currentStroke || currentStroke === 'none' || currentStroke === '#000' || currentStroke === '#000000' || currentStroke === 'black') {
+            element.setAttribute('stroke', '#ffffff');
+            element.setAttribute('stroke-width', element.getAttribute('stroke-width') || '1');
+          }
+        });
+        
+        // Serialize back to string
+        const serializer = new XMLSerializer();
+        svgText = serializer.serializeToString(svgDoc);
+      }
+      
       setSvgContent(svgText);
       
       // Reset view state
@@ -103,10 +125,18 @@ const MandalaColoring = () => {
     // Inject SVG content
     svgRef.current.innerHTML = svgContent;
     
-    // Add event listeners to regions
+    // Add event listeners to regions and ensure white strokes for visibility
     const regions = svgRef.current.querySelectorAll('[data-region], [id]');
     regions.forEach(region => {
       region.style.cursor = 'pointer';
+      
+      // Ensure white stroke for dark theme visibility
+      const currentStroke = region.getAttribute('stroke');
+      if (!currentStroke || currentStroke === 'none' || currentStroke === '#000' || currentStroke === '#000000' || currentStroke === 'black') {
+        region.setAttribute('stroke', '#ffffff');
+        region.style.stroke = '#ffffff';
+      }
+      
       region.addEventListener('click', handleRegionClick);
       region.addEventListener('touchstart', handleRegionTouch);
       region.addEventListener('mouseenter', handleRegionHover);
@@ -298,17 +328,19 @@ const MandalaColoring = () => {
     const region = event.target.closest('[data-region], [id]');
     if (!region) return;
     
-    region.style.stroke = selectedColor.hex;
-    region.style.strokeWidth = '2';
+    // Use white stroke with increased width for hover effect
+    region.style.stroke = '#ffffff';
+    region.style.strokeWidth = '3';
     region.style.opacity = '0.8';
-  }, [selectedColor.hex]);
+  }, []);
 
   const handleRegionLeave = useCallback((event) => {
     const region = event.target.closest('[data-region], [id]');
     if (!region) return;
     
-    region.style.stroke = '';
-    region.style.strokeWidth = '';
+    // Return to default white stroke
+    region.style.stroke = '#ffffff';
+    region.style.strokeWidth = '1';
     region.style.opacity = '1';
   }, []);
 
@@ -629,9 +661,12 @@ const MandalaColoring = () => {
       <style jsx>{`
         .mandala-coloring {
           min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background:
+            radial-gradient(circle at 10% 15%, rgba(255,255,255,0.02), transparent 12%),
+            linear-gradient(180deg, #050507 0%, #0b0c10 100%);
           padding: 1rem;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          color: #f7efe6;
         }
 
         .container {
@@ -642,13 +677,14 @@ const MandalaColoring = () => {
         .header {
           text-align: center;
           margin-bottom: 2rem;
-          color: white;
+          color: #f7efe6;
         }
 
         .header h1 {
           font-size: 2.5rem;
           margin: 0 0 0.5rem 0;
           font-weight: 700;
+          text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
         }
 
         .header p {
@@ -672,17 +708,19 @@ const MandalaColoring = () => {
         }
 
         .panel {
-          background: white;
+          background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
+          border: 1px solid rgba(247, 239, 230, 0.1);
           border-radius: 12px;
           padding: 1.5rem;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(10px);
         }
 
         .panel h3 {
           margin: 0 0 1rem 0;
           font-size: 1.1rem;
           font-weight: 600;
-          color: #333;
+          color: #f7efe6;
         }
 
         .gallery-grid {
@@ -694,9 +732,10 @@ const MandalaColoring = () => {
 
         .gallery-item {
           padding: 0.75rem;
-          border: 2px solid #e5e7eb;
+          border: 2px solid rgba(247, 239, 230, 0.2);
           border-radius: 8px;
-          background: #f9fafb;
+          background: rgba(255, 255, 255, 0.03);
+          color: #f7efe6;
           cursor: pointer;
           transition: all 0.2s;
           font-size: 0.9rem;
@@ -704,19 +743,19 @@ const MandalaColoring = () => {
         }
 
         .gallery-item:hover {
-          border-color: #3b82f6;
-          background: #eff6ff;
+          border-color: rgba(255, 214, 138, 0.6);
+          background: rgba(255, 214, 138, 0.1);
         }
 
         .gallery-item.active {
-          border-color: #3b82f6;
-          background: #dbeafe;
-          color: #1d4ed8;
+          border-color: rgba(255, 214, 138, 0.8);
+          background: rgba(255, 214, 138, 0.15);
+          color: #ffd68a;
           font-weight: 600;
         }
 
         .upload-section {
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid rgba(247, 239, 230, 0.2);
           padding-top: 1rem;
         }
 
@@ -726,25 +765,25 @@ const MandalaColoring = () => {
           gap: 0.5rem;
           padding: 0.75rem;
           width: 100%;
-          border: 2px dashed #9ca3af;
+          border: 2px dashed rgba(247, 239, 230, 0.3);
           border-radius: 8px;
           background: transparent;
+          color: #f7efe6;
           cursor: pointer;
           transition: all 0.2s;
           font-size: 0.9rem;
-          color: #6b7280;
         }
 
         .upload-btn:hover {
-          border-color: #3b82f6;
-          color: #3b82f6;
-          background: #f0f9ff;
+          border-color: rgba(255, 214, 138, 0.6);
+          color: #ffd68a;
+          background: rgba(255, 214, 138, 0.05);
         }
 
         .upload-info {
           margin: 0.5rem 0 0 0;
           font-size: 0.8rem;
-          color: #059669;
+          color: #10b981;
           text-align: center;
         }
 
@@ -759,22 +798,23 @@ const MandalaColoring = () => {
           align-items: center;
           justify-content: center;
           padding: 0.75rem;
-          border: 2px solid #e5e7eb;
+          border: 2px solid rgba(247, 239, 230, 0.2);
           border-radius: 8px;
-          background: #f9fafb;
+          background: rgba(255, 255, 255, 0.03);
+          color: #f7efe6;
           cursor: pointer;
           transition: all 0.2s;
         }
 
         .tool-btn:hover {
-          border-color: #3b82f6;
-          background: #eff6ff;
+          border-color: rgba(255, 214, 138, 0.6);
+          background: rgba(255, 214, 138, 0.1);
         }
 
         .tool-btn.active {
-          border-color: #3b82f6;
-          background: #dbeafe;
-          color: #1d4ed8;
+          border-color: rgba(255, 214, 138, 0.8);
+          background: rgba(255, 214, 138, 0.15);
+          color: #ffd68a;
         }
 
         .color-palette {
@@ -787,7 +827,7 @@ const MandalaColoring = () => {
         .color-swatch {
           width: 100%;
           height: 2rem;
-          border: 2px solid #e5e7eb;
+          border: 2px solid rgba(247, 239, 230, 0.3);
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s;
@@ -795,17 +835,17 @@ const MandalaColoring = () => {
 
         .color-swatch:hover {
           transform: scale(1.1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 2px 8px rgba(255, 214, 138, 0.4);
         }
 
         .color-swatch.active {
-          border-color: #1f2937;
+          border-color: #ffd68a;
           transform: scale(1.1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 2px 8px rgba(255, 214, 138, 0.6);
         }
 
         .color-picker-section {
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid rgba(247, 239, 230, 0.2);
           padding-top: 1rem;
         }
 
@@ -815,22 +855,24 @@ const MandalaColoring = () => {
           gap: 0.5rem;
           margin-bottom: 1rem;
           font-size: 0.9rem;
-          color: #374151;
+          color: #f7efe6;
         }
 
         .color-display {
           width: 2rem;
           height: 2rem;
-          border: 2px solid #e5e7eb;
+          border: 2px solid rgba(247, 239, 230, 0.3);
           border-radius: 6px;
         }
 
         .canvas-area {
           display: flex;
           flex-direction: column;
-          background: white;
+          background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
+          border: 1px solid rgba(247, 239, 230, 0.1);
           border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(10px);
           overflow: hidden;
         }
 
@@ -839,8 +881,8 @@ const MandalaColoring = () => {
           justify-content: space-between;
           align-items: center;
           padding: 1rem;
-          border-bottom: 1px solid #e5e7eb;
-          background: #f9fafb;
+          border-bottom: 1px solid rgba(247, 239, 230, 0.1);
+          background: rgba(255, 255, 255, 0.03);
           flex-wrap: wrap;
           gap: 1rem;
         }
@@ -856,18 +898,19 @@ const MandalaColoring = () => {
           align-items: center;
           gap: 0.5rem;
           padding: 0.5rem 1rem;
-          border: 1px solid #d1d5db;
+          border: 1px solid rgba(247, 239, 230, 0.3);
           border-radius: 6px;
-          background: white;
+          background: rgba(255, 255, 255, 0.05);
+          color: #f7efe6;
           cursor: pointer;
           transition: all 0.2s;
           font-size: 0.9rem;
         }
 
         .toolbar button:hover:not(:disabled) {
-          border-color: #3b82f6;
-          background: #eff6ff;
-          color: #1d4ed8;
+          border-color: rgba(255, 214, 138, 0.6);
+          background: rgba(255, 214, 138, 0.1);
+          color: #ffd68a;
         }
 
         .toolbar button:disabled {
@@ -876,28 +919,28 @@ const MandalaColoring = () => {
         }
 
         .clear-btn {
-          border-color: #ef4444 !important;
-          color: #dc2626;
+          border-color: rgba(239, 68, 68, 0.6) !important;
+          color: #f87171;
         }
 
         .clear-btn:hover {
-          background: #fef2f2 !important;
-          border-color: #dc2626 !important;
+          background: rgba(239, 68, 68, 0.1) !important;
+          border-color: rgba(239, 68, 68, 0.8) !important;
         }
 
         .export-btn {
-          border-color: #059669 !important;
-          color: #047857;
+          border-color: rgba(16, 185, 129, 0.6) !important;
+          color: #34d399;
         }
 
         .export-btn:hover {
-          background: #f0fdfa !important;
-          border-color: #047857 !important;
+          background: rgba(16, 185, 129, 0.1) !important;
+          border-color: rgba(16, 185, 129, 0.8) !important;
         }
 
         .zoom-level {
           font-size: 0.9rem;
-          color: #6b7280;
+          color: #f7efe6;
           min-width: 3rem;
           text-align: center;
         }
@@ -906,7 +949,7 @@ const MandalaColoring = () => {
           flex: 1;
           overflow: hidden;
           position: relative;
-          background: #fafafa;
+          background: rgba(250, 250, 250, 0.05);
           user-select: none;
         }
 
@@ -916,7 +959,7 @@ const MandalaColoring = () => {
           align-items: center;
           justify-content: center;
           height: 100%;
-          color: #9ca3af;
+          color: #f7efe6;
         }
 
         .loading p {
@@ -947,21 +990,21 @@ const MandalaColoring = () => {
 
         .instructions {
           padding: 1rem;
-          background: #f9fafb;
-          border-top: 1px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.03);
+          border-top: 1px solid rgba(247, 239, 230, 0.1);
         }
 
         .instructions h4 {
           margin: 0 0 0.5rem 0;
           font-size: 1rem;
-          color: #374151;
+          color: #f7efe6;
         }
 
         .instructions ul {
           margin: 0;
           padding-left: 1.5rem;
           font-size: 0.9rem;
-          color: #6b7280;
+          color: rgba(247, 239, 230, 0.8);
         }
 
         .instructions li {

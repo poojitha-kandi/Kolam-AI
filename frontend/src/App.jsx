@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import AnimationDemo from './components/AnimationDemo';
 import MandalaColoring from './components/MandalaColoring';
+import KolamBackground from './components/KolamBackground';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -54,27 +55,28 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {/* Navigation Header */}
-      <nav className="nav-header">
-        <div className="nav-container">
-          <h1 className="nav-title">🎨 Kolam AI Studio</h1>
-          <div className="nav-buttons">
-            <button 
-              onClick={() => setCurrentView('kolam')}
-              className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
-            >
-              Kolam Recreation
-            </button>
-            <button 
-              onClick={() => setCurrentView('mandala')}
-              className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
-            >
-              Mandala Coloring
-            </button>
+    <KolamBackground>
+      <div className="App">
+        {/* Navigation Header */}
+        <nav className="nav-header">
+          <div className="nav-container">
+            <h1 className="nav-title">🎨 Kolam AI Studio</h1>
+            <div className="nav-buttons">
+              <button 
+                onClick={() => setCurrentView('kolam')}
+                className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
+              >
+                Kolam Recreation
+              </button>
+              <button 
+                onClick={() => setCurrentView('mandala')}
+                className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
+              >
+                Mandala Coloring
+              </button>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
       {/* Main Content */}
       {currentView === 'mandala' ? (
@@ -138,7 +140,8 @@ function App() {
         <AnimationDemo />
         </header>
       )}
-    </div>
+      </div>
+    </KolamBackground>
   );
 }
 
