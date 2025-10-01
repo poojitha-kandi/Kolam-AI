@@ -1,0 +1,37 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#F3F4F6"/>
+  
+  <!-- Traditional Kolam Pattern -->
+  <g transform="translate(200, 150)">
+    <!-- Outer circle -->
+    <circle cx="0" cy="0" r="80" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    
+    <!-- Middle circle -->
+    <circle cx="0" cy="0" r="50" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    
+    <!-- Inner circle -->
+    <circle cx="0" cy="0" r="20" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    
+    <!-- Decorative dots -->
+    <circle cx="-60" cy="0" r="3" fill="#D1D5DB"/>
+    <circle cx="60" cy="0" r="3" fill="#D1D5DB"/>
+    <circle cx="0" cy="-60" r="3" fill="#D1D5DB"/>
+    <circle cx="0" cy="60" r="3" fill="#D1D5DB"/>
+    
+    <!-- Diagonal lines -->
+    <line x1="-40" y1="-40" x2="40" y2="40" stroke="#D1D5DB" stroke-width="2"/>
+    <line x1="40" y1="-40" x2="-40" y2="40" stroke="#D1D5DB" stroke-width="2"/>
+    
+    <!-- Traditional Kolam curves -->
+    <path d="M -30 -30 Q 0 -15 30 -30" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    <path d="M 30 -30 Q 15 0 30 30" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    <path d="M 30 30 Q 0 15 -30 30" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+    <path d="M -30 30 Q -15 0 -30 -30" stroke="#D1D5DB" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="250" text-anchor="middle" fill="#9CA3AF" font-family="sans-serif" font-size="14">
+    Rangoli Collection
+  </text>
+</svg>

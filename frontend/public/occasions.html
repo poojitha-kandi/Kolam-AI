@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Occasion Wise Rangoli - Kolam AI</title>
+    <link rel="stylesheet" href="css/occasions.css">
+</head>
+<body>
+    <!-- Header with navigation -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">🎨 Kolam AI</h1>
+            <nav class="nav">
+                <button class="nav-btn" onclick="showMainApp()">Main App</button>
+                <button class="nav-btn active" onclick="showOccasions()">Occasion Wise Rangoli</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Occasions grid section -->
+            <section id="occasions-section" class="occasions-section">
+                <div class="section-header">
+                    <h2>Occasion Wise Rangoli Collections</h2>
+                    <p>Explore beautiful rangoli designs organized by festivals and occasions</p>
+                </div>
+                
+                <div id="loading" class="loading" role="status" aria-label="Loading occasions">
+                    <div class="loading-spinner"></div>
+                    <p>Loading occasions...</p>
+                </div>
+                
+                <div id="occasions-grid" class="occasions-grid" role="grid" aria-label="Occasions grid">
+                    <!-- Occasion cards will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Gallery section (hidden by default) -->
+            <section id="gallery-section" class="gallery-section hidden">
+                <div class="gallery-header">
+                    <button class="back-btn" onclick="showOccasions()" aria-label="Back to occasions">
+                        ← Back to Occasions
+                    </button>
+                    <h2 id="gallery-title">Gallery</h2>
+                    <p id="gallery-subtitle">Click any image to view in full size</p>
+                </div>
+                
+                <div id="gallery-grid" class="gallery-grid" role="grid" aria-label="Rangoli images gallery">
+                    <!-- Gallery images will be populated by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Lightbox modal -->
+    <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+        <div class="lightbox-overlay" onclick="closeLightbox()"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close lightbox">×</button>
+            
+            <div class="lightbox-image-container">
+                <button class="lightbox-nav lightbox-prev" onclick="previousImage()" aria-label="Previous image">‹</button>
+                <img id="lightbox-image" src="" alt="" loading="lazy">
+                <button class="lightbox-nav lightbox-next" onclick="nextImage()" aria-label="Next image">›</button>
+            </div>
+            
+            <div class="lightbox-info">
+                <h3 id="lightbox-title">Image Title</h3>
+                <div class="lightbox-controls">
+                    <span id="lightbox-counter">1 / 10</span>
+                    <button class="download-btn" onclick="downloadImage()" aria-label="Download image">
+                        📥 Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error message -->
+    <div id="error-message" class="error-message hidden" role="alert">
+        <p>Sorry, there was an error loading the content. Please try again.</p>
+        <button onclick="hideError()">Dismiss</button>
+    </div>
+
+    <script src="js/occasions.js"></script>
+</body>
+</html>

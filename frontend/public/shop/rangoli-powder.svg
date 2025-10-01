@@ -1,0 +1,10 @@
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#45B7D1"/>
+  <rect x="20" y="20" width="260" height="260" fill="white" opacity="0.1"/>
+  <text x="150" y="130" text-anchor="middle" font-family="Arial" font-size="18" fill="white" font-weight="bold">Colored</text>
+  <text x="150" y="150" text-anchor="middle" font-family="Arial" font-size="18" fill="white" font-weight="bold">Rangoli Powder</text>
+  <text x="150" y="170" text-anchor="middle" font-family="Arial" font-size="14" fill="white">Vibrant Colors</text>
+  <circle cx="130" cy="200" r="15" fill="#FF6B6B" opacity="0.8"/>
+  <circle cx="150" cy="200" r="15" fill="#FFF700" opacity="0.8"/>
+  <circle cx="170" cy="200" r="15" fill="#00FF7F" opacity="0.8"/>
+</svg>

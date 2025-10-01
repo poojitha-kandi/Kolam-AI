@@ -3,13 +3,18 @@ import './App.css';
 import AnimationDemo from './components/AnimationDemo';
 import MandalaColoring from './components/MandalaColoring';
 import KolamBackground from './components/KolamBackground';
+import OccasionRangoli from './pages/OccasionRangoli';
+import ShopPage from './components/ShopPage';
+import CartPage from './components/CartPage';
+import CartBadge from './components/CartBadge';
+import { CartProvider } from './contexts/CartContext';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('kolam'); // 'kolam' or 'mandala'
+  const [currentView, setCurrentView] = useState('kolam'); // 'kolam', 'mandala', 'occasions', 'shop', 'cart'
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -55,93 +60,115 @@ function App() {
   };
 
   return (
-    <KolamBackground>
-      <div className="App">
-        {/* Navigation Header */}
-        <nav className="nav-header">
-          <div className="nav-container">
-            <h1 className="nav-title">🎨 Kolam AI Studio</h1>
-            <div className="nav-buttons">
-              <button 
-                onClick={() => setCurrentView('kolam')}
-                className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
-              >
-                Kolam Recreation
-              </button>
-              <button 
-                onClick={() => setCurrentView('mandala')}
-                className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
-              >
-                Mandala Coloring
-              </button>
+    <CartProvider>
+      <KolamBackground>
+        <div className="App">
+          {/* Navigation Header */}
+          <nav className="nav-header">
+            <div className="nav-container">
+              <h1 className="nav-title">🎨 Kolam AI Studio</h1>
+              <div className="nav-buttons">
+                <button 
+                  onClick={() => setCurrentView('kolam')}
+                  className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
+                >
+                  Kolam AI
+                </button>
+                <button 
+                  onClick={() => setCurrentView('occasions')}
+                  className={`nav-button occasion-button ${currentView === 'occasions' ? 'active' : ''}`}
+                  title="Browse traditional rangoli designs by occasion"
+                >
+                  🎉 Occasion Rangoli
+                </button>
+                <button 
+                  onClick={() => setCurrentView('mandala')}
+                  className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
+                >
+                  Mandala Coloring
+                </button>
+                <button 
+                  onClick={() => setCurrentView('shop')}
+                  className={`nav-button shop-button ${currentView === 'shop' ? 'active' : ''}`}
+                  title="Shop Kolam art supplies"
+                >
+                  🛍️ Shop
+                </button>
+                <CartBadge 
+                  onClick={() => setCurrentView('cart')}
+                  className={`nav-button cart-button ${currentView === 'cart' ? 'active' : ''}`}
+                />
+              </div>
             </div>
-          </div>
-        </nav>
+          </nav>
 
-      {/* Main Content */}
-      {currentView === 'mandala' ? (
-        <MandalaColoring />
-      ) : (
-        <header className="App-header">
-          <h1>🎨 Kolam AI - Pattern Recreation</h1>
-        <p>Upload a Kolam image to see your beautiful traditional design</p>
-        
-        <div className="upload-section">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="file-input"
-          />
-          
-          {selectedFile && (
-            <div className="selected-file">
-              <p>Selected: {selectedFile.name}</p>
-              <img 
-                src={URL.createObjectURL(selectedFile)} 
-                alt="Selected Kolam" 
-                className="preview-image"
-              />
-            </div>
+          {/* Main Content */}
+          {currentView === 'shop' ? (
+            <ShopPage />
+          ) : currentView === 'cart' ? (
+            <CartPage onBackToShop={() => setCurrentView('shop')} />
+          ) : currentView === 'occasions' ? (
+            <OccasionRangoli />
+          ) : currentView === 'mandala' ? (
+            <MandalaColoring />
+          ) : (
+            <header className="App-header">
+              <h1>🎨 Kolam AI - Pattern Recreation</h1>
+              <p>Upload a Kolam image to see your beautiful traditional design</p>
+              
+              <div className="upload-section">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="file-input"
+                />
+                
+                {selectedFile && (
+                  <div className="selected-file">
+                    <p>Selected: {selectedFile.name}</p>
+                    <img 
+                      src={URL.createObjectURL(selectedFile)} 
+                      alt="Selected Kolam" 
+                      className="preview-image"
+                    />
+                  </div>
+                )}
+                
+                <button 
+                  onClick={handleUpload} 
+                  disabled={!selectedFile || uploading}
+                  className="upload-button"
+                >
+                  {uploading ? 'Processing...' : 'Recreate Kolam'}
+                </button>
+              </div>
+
+              {error && (
+                <div className="error-message">
+                  ❌ {error}
+                </div>
+              )}
+
+              {result && (
+                <div className="results-section">
+                  <h2>✨ Your Kolam Pattern</h2>
+                  <p>Preserving the beautiful traditional design you uploaded</p>
+                  <img 
+                    src={`data:image/png;base64,${result.recreated_input}`} 
+                    alt="Your Kolam Pattern" 
+                    className="result-image"
+                  />
+                </div>
+              )}
+
+              {/* Interactive Animation Demo */}
+              <AnimationDemo />
+            </header>
           )}
-          
-          <button 
-            onClick={handleUpload} 
-            disabled={!selectedFile || uploading}
-            className="upload-button"
-          >
-            {uploading ? 'Processing...' : 'Recreate Kolam'}
-          </button>
         </div>
-
-        {error && (
-          <div className="error-message">
-            ❌ {error}
-          </div>
-        )}
-
-        {/* AI Drawing Animation section removed */}
-
-        {result && (
-          <div className="results-section">
-            <h2>✨ Your Kolam Pattern</h2>
-            <p>Preserving the beautiful traditional design you uploaded</p>
-            <img 
-              src={`data:image/png;base64,${result.recreated_input}`} 
-              alt="Your Kolam Pattern" 
-              className="result-image"
-            />
-            
-            {/* AI Drawing Animation section removed */}
-          </div>
-        )}
-
-        {/* Interactive Animation Demo */}
-        <AnimationDemo />
-        </header>
-      )}
-      </div>
-    </KolamBackground>
+      </KolamBackground>
+    </CartProvider>
   );
 }
 

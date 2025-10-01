@@ -138,24 +138,38 @@ const MandalaColoring = () => {
     // Inject SVG content
     svgRef.current.innerHTML = svgContent;
     
-    // Add event listeners to regions and ensure white strokes for visibility with sharp rendering
-    const regions = svgRef.current.querySelectorAll('[data-region], [id]');
-    regions.forEach(region => {
-      region.style.cursor = 'pointer';
+    // Force all mandala outlines to white for visibility on dark/light backgrounds
+    // This ensures consistent white strokes while preserving fillable regions
+    const allElements = svgRef.current.querySelectorAll('path, circle, polygon, g, line, ellipse, rect');
+    allElements.forEach(el => {
+      // Force white stroke for all outline elements
+      el.setAttribute('stroke', '#ffffff');
+      el.setAttribute('stroke-width', el.getAttribute('stroke-width') || '1.5');
       
-      // Ensure white stroke for dark theme visibility with enhanced properties
-      const currentStroke = region.getAttribute('stroke');
-      if (!currentStroke || currentStroke === 'none' || currentStroke === '#000' || currentStroke === '#000000' || currentStroke === 'black') {
-        region.setAttribute('stroke', '#ffffff');
-        region.style.stroke = '#ffffff';
-        region.setAttribute('stroke-width', region.getAttribute('stroke-width') || '1.5');
+      // Preserve fill for regions but ensure outlines are visible
+      if (el.getAttribute('fill') === 'none' || !el.getAttribute('fill') || el.getAttribute('fill') === '#000000') {
+        el.setAttribute('fill', 'none');
       }
       
-      // Add sharp rendering for crisp outlines
-      region.setAttribute('shape-rendering', 'crispEdges');
-      region.setAttribute('vector-effect', 'non-scaling-stroke');
-      region.style.shapeRendering = 'crispEdges';
+      // Add CSS class for consistent styling
+      el.classList.add('mandala-outline');
       
+      // Ensure crisp rendering
+      el.setAttribute('shape-rendering', 'crispEdges');
+      el.setAttribute('vector-effect', 'non-scaling-stroke');
+    });
+    
+    // Add event listeners to clickable regions
+    // Select actual drawable elements (path, circle, polygon, etc.) that have data-region or id
+    // Also include drawable elements that are children of groups with data-region
+    const regions = svgRef.current.querySelectorAll(
+      'path[data-region], circle[data-region], polygon[data-region], rect[data-region], ellipse[data-region], line[data-region], ' +
+      'path[id], circle[id], polygon[id], rect[id], ellipse[id], line[id], ' +
+      'g[data-region] path, g[data-region] circle, g[data-region] polygon, g[data-region] rect, g[data-region] ellipse, g[data-region] line'
+    );
+    
+    regions.forEach(region => {
+      region.style.cursor = 'pointer';
       region.addEventListener('click', handleRegionClick);
       region.addEventListener('touchstart', handleRegionTouch);
       region.addEventListener('mouseenter', handleRegionHover);
@@ -177,15 +191,33 @@ const MandalaColoring = () => {
     event.preventDefault();
     event.stopPropagation();
     
-    // Find the region using closest to handle nested elements
-    const region = event.target.closest('[data-region], [id]');
-    if (!region) return;
+    // The clicked element is the actual colorable element
+    const clickedElement = event.target;
+    console.log('Clicked element:', clickedElement, 'Tag:', clickedElement.tagName);
     
-    const regionId = region.getAttribute('data-region') || region.getAttribute('id');
-    if (!regionId) return;
+    // Find the region ID - check the element itself first, then its parent group
+    let regionId = clickedElement.getAttribute('data-region') || clickedElement.getAttribute('id');
+    
+    if (!regionId) {
+      // Check if the element is inside a group with data-region
+      const parentGroup = clickedElement.closest('g[data-region]');
+      if (parentGroup) {
+        regionId = parentGroup.getAttribute('data-region');
+        console.log('Found parent group with data-region:', regionId);
+      }
+    }
+    
+    console.log('Region ID:', regionId);
+    
+    if (!regionId) {
+      console.warn('No region ID found for clicked element:', clickedElement);
+      return;
+    }
 
-    const oldFill = region.getAttribute('fill') || 'none';
+    const oldFill = clickedElement.getAttribute('fill') || 'none';
     let newFill = oldFill;
+    
+    console.log('Current tool:', currentTool, 'Old fill:', oldFill);
 
     switch (currentTool) {
       case 'paint':
@@ -200,7 +232,7 @@ const MandalaColoring = () => {
         break;
       case 'eyedropper':
         // Pick color from clicked region
-        const currentFill = region.getAttribute('fill') || '#000000';
+        const currentFill = clickedElement.getAttribute('fill') || '#000000';
         if (currentFill !== 'none') {
           setSelectedColor({ hex: currentFill, a: 1 });
         }
@@ -209,11 +241,18 @@ const MandalaColoring = () => {
         return;
     }
 
-    // Apply fill to the region
-    applyFill(region, newFill);
+    console.log('Applying new fill:', newFill);
+    
+    // Apply fill to the clicked element
+    applyFill(clickedElement, newFill);
+    
+    // Use a unique identifier for history that includes the element type
+    const elementId = clickedElement.getAttribute('id') || 
+                     clickedElement.getAttribute('data-region') || 
+                     `${regionId}-${clickedElement.tagName}-${Array.from(clickedElement.parentNode.children).indexOf(clickedElement)}`;
     
     // Push to history
-    pushHistory(regionId, oldFill, newFill);
+    pushHistory(elementId, oldFill, newFill);
   }, [currentTool, selectedColor]);
 
   // Handle touch events for mobile
@@ -225,7 +264,8 @@ const MandalaColoring = () => {
   // Apply fill to a region
   const applyFill = useCallback((region, fill) => {
     region.setAttribute('fill', fill);
-    region.style.fill = fill;
+    // Use setProperty with important to override CSS rules
+    region.style.setProperty('fill', fill, 'important');
   }, []);
 
   // Push action to history stack (max 50 actions)
@@ -251,7 +291,23 @@ const MandalaColoring = () => {
     if (historyIndex < 0 || !svgRef.current) return;
     
     const action = history[historyIndex];
-    const region = svgRef.current.querySelector(`[data-region="${action.regionId}"], [id="${action.regionId}"]`);
+    // Try multiple selectors to find the element
+    let region = svgRef.current.querySelector(`[data-region="${action.regionId}"], [id="${action.regionId}"]`);
+    
+    // If not found, it might be a composite ID, try to parse it
+    if (!region && action.regionId.includes('-')) {
+      const parts = action.regionId.split('-');
+      if (parts.length >= 3) {
+        const parentRegion = parts[0];
+        const tagName = parts[1];
+        const index = parseInt(parts[2]);
+        const parentGroup = svgRef.current.querySelector(`[data-region="${parentRegion}"]`);
+        if (parentGroup) {
+          const children = parentGroup.querySelectorAll(tagName);
+          region = children[index];
+        }
+      }
+    }
     
     if (region) {
       applyFill(region, action.oldFill);
@@ -265,7 +321,23 @@ const MandalaColoring = () => {
     if (historyIndex >= history.length - 1 || !svgRef.current) return;
     
     const action = history[historyIndex + 1];
-    const region = svgRef.current.querySelector(`[data-region="${action.regionId}"], [id="${action.regionId}"]`);
+    // Try multiple selectors to find the element
+    let region = svgRef.current.querySelector(`[data-region="${action.regionId}"], [id="${action.regionId}"]`);
+    
+    // If not found, it might be a composite ID, try to parse it
+    if (!region && action.regionId.includes('-')) {
+      const parts = action.regionId.split('-');
+      if (parts.length >= 3) {
+        const parentRegion = parts[0];
+        const tagName = parts[1];
+        const index = parseInt(parts[2]);
+        const parentGroup = svgRef.current.querySelector(`[data-region="${parentRegion}"]`);
+        if (parentGroup) {
+          const children = parentGroup.querySelectorAll(tagName);
+          region = children[index];
+        }
+      }
+    }
     
     if (region) {
       applyFill(region, action.newFill);
@@ -278,16 +350,27 @@ const MandalaColoring = () => {
   const clearAll = useCallback(() => {
     if (!svgRef.current) return;
     
-    const regions = svgRef.current.querySelectorAll('[data-region], [id]');
+    // Get all colorable elements using the same selector as event listeners
+    const regions = svgRef.current.querySelectorAll(
+      'path[data-region], circle[data-region], polygon[data-region], rect[data-region], ellipse[data-region], line[data-region], ' +
+      'path[id], circle[id], polygon[id], rect[id], ellipse[id], line[id], ' +
+      'g[data-region] path, g[data-region] circle, g[data-region] polygon, g[data-region] rect, g[data-region] ellipse, g[data-region] line'
+    );
+    
     const actions = [];
     
-    regions.forEach(region => {
-      const regionId = region.getAttribute('data-region') || region.getAttribute('id');
+    regions.forEach((region, index) => {
       const oldFill = region.getAttribute('fill') || 'none';
       
       if (oldFill !== 'none') {
         applyFill(region, 'none');
-        actions.push({ regionId, oldFill, newFill: 'none' });
+        
+        // Generate the same ID as used in handleRegionClick
+        const elementId = region.getAttribute('id') || 
+                         region.getAttribute('data-region') || 
+                         `clear-${region.tagName}-${index}`;
+        
+        actions.push({ regionId: elementId, oldFill, newFill: 'none' });
       }
     });
     
@@ -344,8 +427,7 @@ const MandalaColoring = () => {
 
   // Hover effects with sharp white outlines
   const handleRegionHover = useCallback((event) => {
-    const region = event.target.closest('[data-region], [id]');
-    if (!region) return;
+    const region = event.target; // Use the actual hovered element for precise highlighting
     
     // Use white stroke with increased width for hover effect, maintaining sharpness
     region.style.stroke = '#ffffff';
@@ -355,8 +437,7 @@ const MandalaColoring = () => {
   }, []);
 
   const handleRegionLeave = useCallback((event) => {
-    const region = event.target.closest('[data-region], [id]');
-    if (!region) return;
+    const region = event.target; // Use the actual element leaving hover
     
     // Return to default white stroke with sharp rendering
     region.style.stroke = '#ffffff';
@@ -756,7 +837,7 @@ const MandalaColoring = () => {
                     cursor: currentTool === 'pan' ? 'grab' : isPanning ? 'grabbing' : 'default'
                   }}
                 >
-                  <div ref={svgRef} className="svg-content" />
+                  <div ref={svgRef} className="svg-content mandala-svg" />
                 </div>
               )}
             </div>
