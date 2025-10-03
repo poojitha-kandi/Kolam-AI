@@ -6,6 +6,7 @@ const CommunityGallery = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showComments, setShowComments] = useState(null);
   const [newComment, setNewComment] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState([]); // For session-only uploads
   const [newPost, setNewPost] = useState({
     title: '',
     description: '',
@@ -13,6 +14,31 @@ const CommunityGallery = () => {
     image: null
   });
   const fileInputRef = useRef(null);
+
+  // Handle community upload
+  const handleCommunityUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      const newUpload = {
+        id: Date.now(), // Simple ID for session
+        title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+        artist: 'You',
+        location: 'Your Location',
+        likes: 0,
+        shares: 0,
+        liked: false,
+        image: imageUrl,
+        description: 'Uploaded from your device',
+        tags: ['New Upload'],
+        createdAt: 'Just now',
+        comments: []
+      };
+      
+      // Add to the beginning of artworks array
+      setArtworks(prev => [newUpload, ...prev]);
+    }
+  };
 
   const [artworks, setArtworks] = useState([
     {
@@ -264,6 +290,35 @@ const CommunityGallery = () => {
       <div className="gallery-header">
         <h1>👥 Community Gallery</h1>
         <p>Discover and share beautiful Kolam creations from artists around the world</p>
+      </div>
+
+      {/* Share Your Creation Section */}
+      <div className="upload-section">
+        <div className="upload-card">
+          <h2>📤 Share Your Creation!</h2>
+          <p>Upload your beautiful Kolam design to inspire the community</p>
+          
+          <div className="upload-area">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCommunityUpload}
+              className="hidden"
+              id="community-upload"
+            />
+            <label htmlFor="community-upload" className="upload-button">
+              <div className="upload-icon">📸</div>
+              <span>Choose Image</span>
+            </label>
+            <button 
+              onClick={() => setShowUploadModal(true)}
+              className="upload-button secondary"
+            >
+              <div className="upload-icon">✨</div>
+              <span>Upload with Details</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="artworks-grid">

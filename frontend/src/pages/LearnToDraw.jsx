@@ -1,362 +1,376 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../App.css';
 
 const LearnToDraw = () => {
-  const [selectedKolam, setSelectedKolam] = useState(null);
-  const [animationStep, setAnimationStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showDots, setShowDots] = useState(true);
+  // Game state
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [gameMode, setGameMode] = useState(''); // 'tutorial' or 'freehand'
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [isTutorialPlaying, setIsTutorialPlaying] = useState(false);
+  
+  // Canvas refs
+  const canvasRef = useRef(null);
+  const contextRef = useRef(null);
 
-  const kolamTutorials = [
-    {
-      id: 1,
-      name: 'Simple Flower Kolam',
-      difficulty: 'Beginner',
-      dots: { rows: 5, cols: 5 },
-      steps: [
-        { instruction: 'Start with a 5x5 dot grid', path: '', description: 'Place dots evenly spaced in a grid pattern' },
-        { instruction: 'Draw the center petal', path: 'M60,60 Q80,40 100,60 Q80,80 60,60', description: 'Create a curved petal shape' },
-        { instruction: 'Add surrounding petals', path: 'M40,60 Q60,40 80,60 Q60,80 40,60 M60,40 Q80,20 100,40 Q80,60 60,40', description: 'Draw four more petals around the center' },
-        { instruction: 'Connect with flowing lines', path: 'M20,60 Q40,60 60,60 Q80,60 100,60 Q120,60 140,60', description: 'Add connecting lines to complete the design' },
-        { instruction: 'Add decorative borders', path: 'M20,20 Q60,20 100,20 Q140,20 180,20 M20,100 Q60,100 100,100 Q140,100 180,100', description: 'Frame the design with border elements' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Geometric Star Kolam',
-      difficulty: 'Intermediate',
-      dots: { rows: 7, cols: 7 },
-      steps: [
-        { instruction: 'Create a 7x7 dot grid', path: '', description: 'Larger grid for more complex pattern' },
-        { instruction: 'Draw the central star', path: 'M100,50 L120,90 L80,70 L120,70 L80,90 Z', description: 'Create a five-pointed star in the center' },
-        { instruction: 'Add inner triangles', path: 'M100,70 L90,85 L110,85 Z M100,70 L90,55 L110,55 Z', description: 'Small triangular elements inside the star' },
-        { instruction: 'Create outer frame', path: 'M50,50 L150,50 L150,110 L50,110 Z', description: 'Rectangular border around the star' },
-        { instruction: 'Add corner decorations', path: 'M50,50 Q40,40 50,30 Q60,40 50,50 M150,50 Q160,40 150,30 Q140,40 150,50', description: 'Decorative corners to complete the design' }
-      ]
-    },
-    {
-      id: 3,
-      name: 'Traditional Lotus Kolam',
-      difficulty: 'Advanced',
-      dots: { rows: 9, cols: 9 },
-      steps: [
-        { instruction: 'Begin with 9x9 dot grid', path: '', description: 'Large grid for detailed lotus pattern' },
-        { instruction: 'Draw lotus center', path: 'M100,80 Q105,75 110,80 Q105,85 100,80 M90,80 Q95,75 100,80 Q95,85 90,80', description: 'Small central lotus bud' },
-        { instruction: 'Add inner petals', path: 'M100,70 Q120,60 130,80 Q120,100 100,90 Q80,100 70,80 Q80,60 100,70', description: 'Four main inner petals' },
-        { instruction: 'Create outer petals', path: 'M100,50 Q140,40 150,80 Q140,120 100,110 Q60,120 50,80 Q60,40 100,50', description: 'Larger outer petals' },
-        { instruction: 'Add stem and leaves', path: 'M100,110 Q105,130 100,150 M90,125 Q70,120 60,140 Q70,150 90,145', description: 'Lotus stem with side leaves' },
-        { instruction: 'Complete with details', path: 'M100,80 L105,85 M95,85 L100,80 M100,75 Q100,70 105,75', description: 'Final details and textures' }
-      ]
+  // Initialize canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const context = canvas.getContext('2d');
+      context.scale(1, 1);
+      context.lineCap = 'round';
+      context.strokeStyle = '#FF6B35';
+      context.lineWidth = 3;
+      contextRef.current = context;
     }
+  }, []);
+
+  // Tutorial animation for dot-based patterns
+  const dotPatternSteps = [
+    { x: 100, y: 100, instruction: "Start from the center dot" },
+    { x: 120, y: 80, instruction: "Connect to the upper right" },
+    { x: 140, y: 100, instruction: "Move to the right" },
+    { x: 120, y: 120, instruction: "Go down and left" },
+    { x: 100, y: 100, instruction: "Return to center to complete" }
   ];
 
-  useEffect(() => {
-    let interval;
-    if (isPlaying && selectedKolam && animationStep < selectedKolam.steps.length - 1) {
-      interval = setInterval(() => {
-        setAnimationStep(prev => prev + 1);
-      }, 2000);
-    } else if (isPlaying && animationStep >= selectedKolam.steps.length - 1) {
-      setIsPlaying(false);
+  // Handle image upload
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedImage(file);
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      
+      // Analyze the image (placeholder logic)
+      analyzeImage(file);
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, animationStep, selectedKolam]);
+  };
 
-  const handlePlay = () => {
-    if (animationStep >= selectedKolam.steps.length - 1) {
-      setAnimationStep(0);
+  // Placeholder image analysis logic
+  const analyzeImage = (file) => {
+    const filename = file.name.toLowerCase();
+    
+    if (filename.includes('dot')) {
+      setAnalysisResult({
+        type: 'dot-based',
+        message: 'Dot Grid Detected! This appears to be a dot-based Kolam pattern.',
+        hasDots: true
+      });
+    } else {
+      setAnalysisResult({
+        type: 'freehand',
+        message: 'Free-hand Pattern Detected! This appears to be a flowing design.',
+        hasDots: false
+      });
     }
-    setIsPlaying(true);
   };
 
-  const handlePause = () => {
-    setIsPlaying(false);
+  // Start drawing mode
+  const startDrawMode = (mode) => {
+    setGameMode(mode);
+    const canvas = canvasRef.current;
+    const context = contextRef.current;
+    
+    // Clear canvas
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // If dot-based and we have dots, draw the dot grid
+    if (analysisResult?.hasDots && mode === 'freehand') {
+      drawDotGrid();
+    }
+    
+    if (mode === 'tutorial' && analysisResult?.hasDots) {
+      setTutorialStep(0);
+      drawDotGrid();
+      startTutorial();
+    }
   };
 
-  const handleRestart = () => {
-    setAnimationStep(0);
-    setIsPlaying(false);
-  };
-
-  const handleStepSelect = (stepIndex) => {
-    setAnimationStep(stepIndex);
-    setIsPlaying(false);
-  };
-
-  const renderDotGrid = (rows, cols) => {
-    const dots = [];
-    const spacing = 20;
-    const offsetX = 50;
-    const offsetY = 50;
+  // Draw dot grid on canvas
+  const drawDotGrid = () => {
+    const context = contextRef.current;
+    const canvas = canvasRef.current;
+    
+    context.fillStyle = '#4A5568';
+    const rows = 7;
+    const cols = 7;
+    const spacing = 40;
+    const offsetX = canvas.width / 2 - (cols * spacing) / 2;
+    const offsetY = canvas.height / 2 - (rows * spacing) / 2;
 
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        dots.push(
-          <circle
-            key={`${row}-${col}`}
-            cx={offsetX + col * spacing}
-            cy={offsetY + row * spacing}
-            r="2"
-            fill="#4A5568"
-            opacity={showDots ? 0.7 : 0}
-          />
+        context.beginPath();
+        context.arc(
+          offsetX + col * spacing,
+          offsetY + row * spacing,
+          3,
+          0,
+          2 * Math.PI
         );
+        context.fill();
       }
     }
-    return dots;
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Beginner': return '#48BB78';
-      case 'Intermediate': return '#ED8936';
-      case 'Advanced': return '#E53E3E';
-      default: return '#4A5568';
+  // Start tutorial animation
+  const startTutorial = () => {
+    setIsTutorialPlaying(true);
+    setTutorialStep(0);
+    animateTutorialStep(0);
+  };
+
+  // Animate tutorial steps
+  const animateTutorialStep = (step) => {
+    if (step >= dotPatternSteps.length) {
+      setIsTutorialPlaying(false);
+      return;
+    }
+
+    const context = contextRef.current;
+    const currentStep = dotPatternSteps[step];
+    const canvas = canvasRef.current;
+    const offsetX = canvas.width / 2;
+    const offsetY = canvas.height / 2;
+
+    // Draw line to current step
+    if (step > 0) {
+      const prevStep = dotPatternSteps[step - 1];
+      context.beginPath();
+      context.moveTo(
+        offsetX + prevStep.x - 100,
+        offsetY + prevStep.y - 100
+      );
+      context.lineTo(
+        offsetX + currentStep.x - 100,
+        offsetY + currentStep.y - 100
+      );
+      context.stroke();
+    }
+
+    setTimeout(() => {
+      setTutorialStep(step + 1);
+      animateTutorialStep(step + 1);
+    }, 1500);
+  };
+
+  // Mouse drawing functions
+  const startDrawing = ({ nativeEvent }) => {
+    if (gameMode !== 'freehand') return;
+    
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(offsetX, offsetY);
+    setIsDrawing(true);
+  };
+
+  const finishDrawing = () => {
+    contextRef.current.closePath();
+    setIsDrawing(false);
+  };
+
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing || gameMode !== 'freehand') return;
+    
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.lineTo(offsetX, offsetY);
+    contextRef.current.stroke();
+  };
+
+  // Clear canvas
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const context = contextRef.current;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (analysisResult?.hasDots && gameMode === 'freehand') {
+      drawDotGrid();
     }
   };
 
   return (
-    <div className="learn-to-draw-page">
-      <header className="page-header">
-        <h1>📚 Learn to Draw Kolams</h1>
-        <p>Master the art of Kolam drawing with step-by-step animated tutorials</p>
-      </header>
+    <div className="learn-to-draw-page min-h-screen bg-gradient-to-br from-orange-50 to-purple-50 p-4">
+      <div className="container mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            🎨 Learn to Draw Kolam
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Upload an image and learn step-by-step or practice drawing freely
+          </p>
+        </div>
 
-      <div className="learn-content">
-        {!selectedKolam ? (
-          <div className="tutorials-grid">
-            <h2>Choose a Tutorial</h2>
-            <div className="tutorials-list">
-              {kolamTutorials.map((tutorial) => (
-                <div 
-                  key={tutorial.id}
-                  className="tutorial-card"
-                  onClick={() => setSelectedKolam(tutorial)}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Panel - Upload & Analysis */}
+          <div className="space-y-6">
+            {/* Upload Section */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                📤 Upload Kolam Image
+              </h2>
+              
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer block"
                 >
-                  <div className="tutorial-header">
-                    <h3>{tutorial.name}</h3>
-                    <span 
-                      className="difficulty-badge"
-                      style={{ backgroundColor: getDifficultyColor(tutorial.difficulty) }}
-                    >
-                      {tutorial.difficulty}
-                    </span>
-                  </div>
-                  <div className="tutorial-preview">
-                    <svg width="200" height="150" viewBox="0 0 200 150">
-                      {renderDotGrid(tutorial.dots.rows, tutorial.dots.cols)}
-                      {tutorial.steps.map((step, index) => (
-                        <path
-                          key={index}
-                          d={step.path}
-                          stroke="#FF6B35"
-                          strokeWidth="2"
-                          fill="none"
-                          opacity="0.6"
-                        />
-                      ))}
-                    </svg>
-                  </div>
-                  <div className="tutorial-info">
-                    <p>{tutorial.dots.rows}×{tutorial.dots.cols} dot grid</p>
-                    <p>{tutorial.steps.length} steps</p>
-                  </div>
-                  <button className="start-tutorial-btn">
-                    Start Tutorial →
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="tutorial-active">
-            <div className="tutorial-header-active">
-              <button 
-                className="back-btn"
-                onClick={() => setSelectedKolam(null)}
-              >
-                ← Back to Tutorials
-              </button>
-              <h2>{selectedKolam.name}</h2>
-              <span 
-                className="difficulty-badge"
-                style={{ backgroundColor: getDifficultyColor(selectedKolam.difficulty) }}
-              >
-                {selectedKolam.difficulty}
-              </span>
-            </div>
+                  <div className="text-4xl mb-4">📸</div>
+                  <p className="text-gray-600 mb-2">
+                    Click to upload an image or drag and drop
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Supports JPG, PNG files
+                  </p>
+                </label>
+              </div>
 
-            <div className="tutorial-workspace">
-              <div className="canvas-area">
-                <svg width="400" height="300" viewBox="0 0 400 300" className="kolam-canvas">
-                  {/* Background */}
-                  <rect width="400" height="300" fill="#1A202C" />
-                  
-                  {/* Dot Grid */}
-                  {renderDotGrid(selectedKolam.dots.rows, selectedKolam.dots.cols)}
-                  
-                  {/* Animated Steps */}
-                  {selectedKolam.steps.slice(0, animationStep + 1).map((step, index) => (
-                    <g key={index}>
-                      <path
-                        d={step.path}
-                        stroke="#FF6B35"
-                        strokeWidth="3"
-                        fill="none"
-                        strokeDasharray={index === animationStep ? "200" : "none"}
-                        strokeDashoffset={index === animationStep ? "200" : "0"}
-                        style={{
-                          animation: index === animationStep ? 'drawLine 2s ease-in-out forwards' : 'none'
-                        }}
-                      />
-                    </g>
-                  ))}
-                </svg>
-
-                <div className="canvas-controls">
-                  <button 
-                    className="control-btn"
-                    onClick={handlePlay}
-                    disabled={isPlaying}
-                  >
-                    ▶️ Play
-                  </button>
-                  <button 
-                    className="control-btn"
-                    onClick={handlePause}
-                    disabled={!isPlaying}
-                  >
-                    ⏸️ Pause
-                  </button>
-                  <button 
-                    className="control-btn"
-                    onClick={handleRestart}
-                  >
-                    🔄 Restart
-                  </button>
-                  <label className="toggle-dots">
-                    <input
-                      type="checkbox"
-                      checked={showDots}
-                      onChange={(e) => setShowDots(e.target.checked)}
+              {/* Uploaded Image Display */}
+              {uploadedImage && (
+                <div className="mt-4">
+                  <h3 className="font-semibold text-gray-700 mb-2">Uploaded Image:</h3>
+                  <div className="border rounded-lg overflow-hidden">
+                    <img
+                      src={imageUrl}
+                      alt="Uploaded Kolam"
+                      className="w-full h-48 object-cover"
                     />
-                    Show Dots
-                  </label>
+                  </div>
                 </div>
-              </div>
-
-              <div className="steps-panel">
-                <h3>Steps</h3>
-                <div className="steps-list">
-                  {selectedKolam.steps.map((step, index) => (
-                    <div 
-                      key={index}
-                      className={`step-item ${index <= animationStep ? 'completed' : ''} ${index === animationStep ? 'active' : ''}`}
-                      onClick={() => handleStepSelect(index)}
-                    >
-                      <div className="step-number">{index + 1}</div>
-                      <div className="step-content">
-                        <h4>{step.instruction}</h4>
-                        <p>{step.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
 
-            <div className="tutorial-tips">
-              <h3>💡 Drawing Tips</h3>
-              <ul>
-                <li>Start with light strokes and gradually darken your lines</li>
-                <li>Keep your hand steady and move in smooth, flowing motions</li>
-                <li>Practice the dot grid first to maintain proper spacing</li>
-                <li>Use traditional materials like rice flour for authentic texture</li>
-              </ul>
+            {/* Analysis Results */}
+            {analysisResult && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                  🔍 Analysis Results
+                </h2>
+                
+                <div className={`p-4 rounded-lg mb-4 ${
+                  analysisResult.hasDots 
+                    ? 'bg-green-100 border border-green-300' 
+                    : 'bg-blue-100 border border-blue-300'
+                }`}>
+                  <p className="font-medium text-gray-800">
+                    {analysisResult.message}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4">
+                  {analysisResult.hasDots && (
+                    <button
+                      onClick={() => startDrawMode('tutorial')}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300"
+                    >
+                      🎯 Start Tutorial
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startDrawMode('freehand')}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-orange-600 hover:to-purple-700 transition-all duration-300"
+                  >
+                    ✏️ Draw Freely
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel - Drawing Canvas */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  🎨 Drawing Canvas
+                </h2>
+                
+                {gameMode && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={clearCanvas}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Canvas */}
+              <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={400}
+                  className="w-full h-96 cursor-crosshair"
+                  onMouseDown={startDrawing}
+                  onMouseUp={finishDrawing}
+                  onMouseMove={draw}
+                  style={{ backgroundColor: '#f9f9f9' }}
+                />
+              </div>
+
+              {/* Tutorial Status */}
+              {gameMode === 'tutorial' && (
+                <div className="mt-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-green-800 mb-2">
+                      Tutorial Mode Active
+                    </h3>
+                    <p className="text-green-700">
+                      {isTutorialPlaying
+                        ? `Step ${tutorialStep + 1}: ${
+                            dotPatternSteps[tutorialStep]?.instruction || 'Tutorial complete!'
+                          }`
+                        : 'Tutorial completed! Try drawing freely now.'
+                      }
+                    </p>
+                    
+                    {!isTutorialPlaying && tutorialStep > 0 && (
+                      <button
+                        onClick={startTutorial}
+                        className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        Replay Tutorial
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Drawing Instructions */}
+              {gameMode === 'freehand' && (
+                <div className="mt-4">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-orange-800 mb-2">
+                      Free Drawing Mode
+                    </h3>
+                    <p className="text-orange-700">
+                      {analysisResult?.hasDots
+                        ? 'Connect the dots to create your Kolam pattern!'
+                        : 'Draw freely to create your own unique design!'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-
-      <style jsx>{`
-        @keyframes drawLine {
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-        
-        .tutorial-card {
-          background: var(--bg-secondary);
-          border-radius: var(--radius-lg);
-          padding: var(--spacing-lg);
-          cursor: pointer;
-          transition: all var(--transition-normal);
-          border: 2px solid transparent;
-        }
-        
-        .tutorial-card:hover {
-          border-color: var(--accent-primary);
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-hover);
-        }
-        
-        .canvas-area {
-          background: var(--bg-secondary);
-          border-radius: var(--radius-lg);
-          padding: var(--spacing-lg);
-          margin-bottom: var(--spacing-lg);
-        }
-        
-        .kolam-canvas {
-          border: 2px solid var(--border-subtle);
-          border-radius: var(--radius-md);
-          background: #1A202C;
-        }
-        
-        .steps-panel {
-          background: var(--bg-secondary);
-          border-radius: var(--radius-lg);
-          padding: var(--spacing-lg);
-          max-height: 400px;
-          overflow-y: auto;
-        }
-        
-        .step-item {
-          display: flex;
-          gap: var(--spacing-md);
-          padding: var(--spacing-md);
-          border-radius: var(--radius-md);
-          cursor: pointer;
-          transition: all var(--transition-normal);
-          margin-bottom: var(--spacing-sm);
-        }
-        
-        .step-item:hover {
-          background: var(--bg-tertiary);
-        }
-        
-        .step-item.active {
-          background: var(--accent-primary);
-          color: white;
-        }
-        
-        .step-item.completed .step-number {
-          background: var(--success);
-        }
-        
-        .step-number {
-          background: var(--bg-tertiary);
-          color: var(--text-primary);
-          border-radius: 50%;
-          width: 30px;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          font-size: 0.875rem;
-        }
-      `}</style>
     </div>
   );
 };

@@ -169,6 +169,97 @@ export const PRODUCTS = [
     rating: 4.9,
     reviews: 45,
     featured: true
+  },
+  {
+    id: 10,
+    name: "Rangoli Color Squeeze Bottles (Set of 10)",
+    price: 499,
+    originalPrice: 799,
+    category: PRODUCT_CATEGORIES.TOOLS,
+    image: "IMG-20251003-WA0016.jpg",
+    description: "A complete set of 10 easy-to-use squeeze bottles for creating precise and vibrant floor decorations. Perfect for both beginners and experts.",
+    features: [
+      "10 vibrant color squeeze bottles",
+      "Easy-grip design for precision",
+      "Non-toxic water-based colors",
+      "Perfect for detailed work"
+    ],
+    inStock: true,
+    rating: 4.8,
+    reviews: 1250
+  },
+  {
+    id: 11,
+    name: "Beginner's Kolam & Rangoli Toolkit",
+    price: 699,
+    originalPrice: 999,
+    category: PRODUCT_CATEGORIES.ACCESSORIES,
+    image: "IMG-20251003-WA0016 (3).jpg",
+    description: "Everything you need to get started! This kit includes color bottles, rollers, and pattern makers to help you create beautiful designs effortlessly.",
+    features: [
+      "Complete beginner toolkit",
+      "Color bottles and rollers included",
+      "Pattern makers for guidance",
+      "Step-by-step instruction guide"
+    ],
+    inStock: true,
+    rating: 4.7,
+    reviews: 980
+  },
+  {
+    id: 12,
+    name: "Mindful Art Therapy: 7 Dots Kolam Designs",
+    price: 349,
+    originalPrice: 499,
+    category: PRODUCT_CATEGORIES.ACCESSORIES,
+    image: "IMG-20251003-WA0016 (4).jpg",
+    description: "A step-by-step book by Anusha Rajendran for stress relief and creativity, focusing on beautiful 7-dot Kolam patterns.",
+    features: [
+      "50+ 7-dot Kolam designs",
+      "Step-by-step instructions",
+      "Stress relief techniques",
+      "By expert Anusha Rajendran"
+    ],
+    inStock: true,
+    rating: 4.9,
+    reviews: 2150
+  },
+  {
+    id: 13,
+    name: "Ascension Rangoli Colors & Stencil Kit",
+    price: 899,
+    originalPrice: 1299,
+    category: PRODUCT_CATEGORIES.MATERIALS,
+    image: "IMG-20251003-WA0016 (5).jpg",
+    description: "A premium kit with bright, assorted rangoli colors and a variety of traditional stencils, including 'Om' and lotus feet designs.",
+    features: [
+      "Premium assorted rangoli colors",
+      "Traditional stencil collection",
+      "Om and lotus feet designs",
+      "High-quality materials"
+    ],
+    inStock: true,
+    rating: 4.8,
+    reviews: 1800
+  },
+  {
+    id: 14,
+    name: "Hand-Painted Wooden Mandala Art Piece",
+    price: 1499,
+    originalPrice: 2199,
+    category: PRODUCT_CATEGORIES.ACCESSORIES,
+    image: "IMG-20251003-WA0016 (2).jpg",
+    description: "A beautiful, laser-cut wooden Mandala, hand-painted with vibrant colors. Perfect as a decorative centerpiece or for meditation.",
+    features: [
+      "Laser-cut wooden construction",
+      "Hand-painted vibrant colors",
+      "Perfect for meditation",
+      "Decorative centerpiece"
+    ],
+    inStock: true,
+    rating: 5.0,
+    reviews: 750,
+    featured: true
   }
 ];
 

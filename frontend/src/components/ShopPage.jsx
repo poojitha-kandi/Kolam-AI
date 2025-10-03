@@ -9,10 +9,19 @@ const ShopPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    image: null,
+    description: '',
+    category: PRODUCT_CATEGORIES.TOOLS
+  });
+  const [tempProducts, setTempProducts] = useState([]); // Session-only products
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let filtered = PRODUCTS;
+    let filtered = [...PRODUCTS, ...tempProducts]; // Include session products
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -45,7 +54,38 @@ const ShopPage = () => {
           return b.rating - a.rating;
         });
     }
-  }, [selectedCategory, searchTerm, sortBy]);
+  }, [selectedCategory, searchTerm, sortBy, tempProducts]);
+
+  // Admin functions
+  const handleAdminUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setNewProduct(prev => ({ ...prev, image: imageUrl }));
+    }
+  };
+
+  const handleAddProduct = () => {
+    if (newProduct.name && newProduct.price && newProduct.image) {
+      const product = {
+        id: Date.now(), // Simple ID for session
+        name: newProduct.name,
+        price: parseInt(newProduct.price),
+        originalPrice: parseInt(newProduct.price) + 50, // Add some markup
+        category: newProduct.category,
+        image: newProduct.image,
+        description: newProduct.description || 'New product added by admin',
+        features: ['New Product', 'Session Only'],
+        inStock: true,
+        rating: 4.5,
+        reviews: 0
+      };
+      
+      setTempProducts(prev => [...prev, product]);
+      setNewProduct({ name: '', price: '', image: null, description: '', category: PRODUCT_CATEGORIES.TOOLS });
+      alert('Product added successfully! (Session only)');
+    }
+  };
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -74,6 +114,12 @@ const ShopPage = () => {
               <p className="text-lg font-semibold text-orange-600">
                 Free shipping on orders ₹500+
               </p>
+              <button
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="mt-2 px-3 py-1 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                {showAdminPanel ? 'Hide Admin' : 'Admin Panel'}
+              </button>
             </div>
           </div>
 
@@ -129,8 +175,104 @@ const ShopPage = () => {
         </div>
       </div>
 
+      {/* Admin Panel */}
+      {showAdminPanel && (
+        <div className="admin-panel bg-gray-100 border-t border-gray-200">
+          <div className="container mx-auto px-4 py-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              🔧 Admin Panel - Add New Product
+            </h2>
+            
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter product name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    value={newProduct.price}
+                    onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="Enter price"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value={PRODUCT_CATEGORIES.TOOLS}>Tools</option>
+                    <option value={PRODUCT_CATEGORIES.STENCILS}>Stencils</option>
+                    <option value={PRODUCT_CATEGORIES.MATERIALS}>Materials</option>
+                    <option value={PRODUCT_CATEGORIES.ACCESSORIES}>Accessories</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Image *
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAdminUpload}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  {newProduct.image && (
+                    <img
+                      src={newProduct.image}
+                      alt="Preview"
+                      className="mt-2 w-20 h-20 object-cover rounded-md"
+                    />
+                  )}
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={newProduct.description}
+                    onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter product description"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+              </div>
+              
+              <button
+                onClick={handleAddProduct}
+                className="mt-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg hover:from-orange-600 hover:to-purple-700 transition-all duration-300"
+              >
+                Add Product (Session Only)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Products Grid */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">{showAdminPanel && <div className="mb-8" />}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
