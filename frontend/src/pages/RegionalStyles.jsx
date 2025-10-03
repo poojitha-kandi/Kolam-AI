@@ -3,6 +3,8 @@ import '../App.css';
 
 const RegionalStyles = () => {
   const [selectedRegion, setSelectedRegion] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [filteredDesigns, setFilteredDesigns] = useState([]);
 
   const regionalData = {
     'Tamil Nadu': {
@@ -51,176 +53,164 @@ const RegionalStyles = () => {
         }
       ]
     },
-    'Maharashtra': {
-      description: 'Maharashtrian Rangoli is characterized by bold patterns and use of colored powders. Often features religious symbols and motifs.',
+    'Karnataka': {
+      description: 'Karnataka Rangoli patterns often feature symmetric designs with cultural significance, incorporating both traditional and modern elements.',
       designs: [
         {
           id: 7,
-          name: 'Ganpati Rangoli',
+          name: 'Mysore Rangoli',
           image: '/api/placeholder/300/300',
-          description: 'Lord Ganesha inspired design for festivals, bringing good fortune and removing obstacles.'
+          description: 'Royal palace-inspired designs with intricate geometric patterns.'
         },
         {
           id: 8,
-          name: 'Shankh Rangoli',
+          name: 'Ganesha Rangoli',
           image: '/api/placeholder/300/300',
-          description: 'Conch shell pattern symbolizing divine sound and spiritual awakening.'
+          description: 'Lord Ganesha motif for auspicious occasions and festivals.'
         },
         {
           id: 9,
-          name: 'Swastik Rangoli',
+          name: 'Hoysala Rangoli',
           image: '/api/placeholder/300/300',
-          description: 'Ancient symbol of good fortune and prosperity in Marathi tradition.'
-        }
-      ]
-    },
-    'Gujarat': {
-      description: 'Gujarati Rangoli features vibrant mirror work and intricate patterns. Known for their festive colors and celebratory themes.',
-      designs: [
-        {
-          id: 10,
-          name: 'Navratri Rangoli',
-          image: '/api/placeholder/300/300',
-          description: 'Nine-night festival design with dancing figures and geometric patterns.'
-        },
-        {
-          id: 11,
-          name: 'Mirror Work Rangoli',
-          image: '/api/placeholder/300/300',
-          description: 'Traditional Gujarati style with embedded mirror pieces reflecting light beautifully.'
-        },
-        {
-          id: 12,
-          name: 'Garba Circle Rangoli',
-          image: '/api/placeholder/300/300',
-          description: 'Circular design inspired by traditional Garba dance formations.'
+          description: 'Inspired by Hoysala architecture with temple motifs.'
         }
       ]
     },
     'Kerala': {
-      description: 'Kerala Rangoli, known as Kolam or Pookalam, often uses flower petals and natural colors. Designs are inspired by nature.',
+      description: 'Kerala Rangoli, known as Kolam or Alpona, features traditional motifs inspired by nature and maritime culture.',
       designs: [
         {
-          id: 13,
-          name: 'Onam Pookalam',
+          id: 10,
+          name: 'Onam Kolam',
           image: '/api/placeholder/300/300',
-          description: 'Flower carpet design for Onam festival using colorful flower petals in circular patterns.'
+          description: 'Harvest festival design with floral patterns and traditional motifs.'
         },
         {
-          id: 14,
-          name: 'Thiruvathira Kolam',
+          id: 11,
+          name: 'Boat Kolam',
           image: '/api/placeholder/300/300',
-          description: 'Women\'s festival design with intricate geometric patterns and floral borders.'
+          description: 'Traditional boat motif representing Kerala maritime heritage.'
         },
         {
-          id: 15,
-          name: 'Boat Race Kolam',
+          id: 12,
+          name: 'Coconut Tree Kolam',
           image: '/api/placeholder/300/300',
-          description: 'Snake boat inspired design celebrating Kerala\'s famous boat races.'
-        }
-      ]
-    },
-    'Rajasthan': {
-      description: 'Rajasthani Rangoli features bold desert colors and royal motifs. Often includes peacock and camel designs.',
-      designs: [
-        {
-          id: 16,
-          name: 'Desert Bloom Rangoli',
-          image: '/api/placeholder/300/300',
-          description: 'Desert flower motifs in warm colors representing the beauty of Rajasthani landscape.'
-        },
-        {
-          id: 17,
-          name: 'Rajasthani Mandala',
-          image: '/api/placeholder/300/300',
-          description: 'Royal circular design with intricate patterns inspired by palace architecture.'
-        },
-        {
-          id: 18,
-          name: 'Camel Caravan Rangoli',
-          image: '/api/placeholder/300/300',
-          description: 'Traditional desert caravan scene in vibrant Rangoli form.'
+          description: 'Coconut palm design symbolizing prosperity and natural abundance.'
         }
       ]
     }
   };
 
-  const regions = Object.keys(regionalData);
+  const handleRegionSelect = (region) => {
+    setSelectedRegion(region);
+    setFilteredDesigns(regionalData[region].designs);
+    setShowModal(false);
+  };
+
+  const openRegionalModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  const getAllDesigns = () => {
+    return Object.values(regionalData).flatMap(region => region.designs);
+  };
 
   return (
-    <div className="regional-styles-page">
-      <header className="page-header">
-        <h1>🗺️ Regional Kolam & Rangoli Styles</h1>
-        <p>Explore the diverse traditional art forms across different Indian states</p>
-      </header>
-
-      <div className="regional-content">
-        {!selectedRegion ? (
-          <div className="regions-grid">
-            {regions.map((region) => (
-              <div 
-                key={region}
-                className="region-card"
-                onClick={() => setSelectedRegion(region)}
-              >
-                <div className="region-card-header">
-                  <h3>{region}</h3>
-                </div>
-                <div className="region-description">
-                  <p>{regionalData[region].description}</p>
-                </div>
-                <div className="region-preview">
-                  <div className="preview-grid">
-                    {regionalData[region].designs.slice(0, 3).map((design) => (
-                      <div key={design.id} className="preview-item">
-                        <img src={design.image} alt={design.name} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <button className="explore-btn">
-                  Explore {region} Styles →
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="region-detail">
-            <div className="region-detail-header">
-              <button 
-                className="back-btn"
-                onClick={() => setSelectedRegion(null)}
-              >
-                ← Back to Regions
-              </button>
-              <h2>{selectedRegion} Kolam Styles</h2>
-              <p>{regionalData[selectedRegion].description}</p>
-            </div>
-
-            <div className="designs-gallery">
-              {regionalData[selectedRegion].designs.map((design) => (
-                <div key={design.id} className="design-card">
-                  <div className="design-image">
-                    <img src={design.image} alt={design.name} />
-                  </div>
-                  <div className="design-info">
-                    <h4>{design.name}</h4>
-                    <p>{design.description}</p>
-                    <div className="design-actions">
-                      <button className="action-btn primary">
-                        📱 Try in AR
-                      </button>
-                      <button className="action-btn secondary">
-                        🎨 Learn to Draw
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+    <div className="regional-styles-container">
+      {/* Header Section */}
+      <div className="regional-header">
+        <h1 className="regional-title">🗺️ Regional Kolam Styles</h1>
+        <p className="regional-subtitle">
+          Explore the rich diversity of Kolam traditions across different regions of India
+        </p>
+        
+        {/* Filter Button */}
+        <button 
+          className="region-filter-btn"
+          onClick={openRegionalModal}
+        >
+          🎯 Filter by Region
+        </button>
+        
+        {selectedRegion && (
+          <div className="selected-region-info">
+            <h3>📍 {selectedRegion}</h3>
+            <p>{regionalData[selectedRegion].description}</p>
+            <button 
+              className="clear-filter-btn"
+              onClick={() => {
+                setSelectedRegion(null);
+                setFilteredDesigns([]);
+              }}
+            >
+              ✖️ Clear Filter
+            </button>
           </div>
         )}
       </div>
+
+      {/* Designs Grid */}
+      <div className="designs-grid">
+        {(filteredDesigns.length > 0 ? filteredDesigns : getAllDesigns()).map((design) => (
+          <div key={design.id} className="design-card">
+            <div className="design-image-container">
+              <img 
+                src={design.image} 
+                alt={design.name}
+                className="design-image"
+              />
+            </div>
+            <div className="design-info">
+              <h3 className="design-name">{design.name}</h3>
+              <p className="design-description">{design.description}</p>
+              <div className="design-actions">
+                <button className="action-btn primary">📥 Download</button>
+                <button className="action-btn secondary">👁️ View Details</button>
+                <button className="action-btn tertiary">📱 AR Preview</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Regional Selection Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🗺️ Select Region</h2>
+              <button className="modal-close" onClick={closeModal}>✖️</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-description">
+                Choose a region to explore its unique Kolam traditions and designs
+              </p>
+              <div className="region-grid">
+                {Object.keys(regionalData).map((region) => (
+                  <button
+                    key={region}
+                    className="region-option"
+                    onClick={() => handleRegionSelect(region)}
+                  >
+                    <div className="region-icon">
+                      {region === 'Tamil Nadu' && '🏛️'}
+                      {region === 'Andhra Pradesh' && '🌅'}
+                      {region === 'Karnataka' && '🏰'}
+                      {region === 'Kerala' && '🌴'}
+                    </div>
+                    <h3>{region}</h3>
+                    <p>{regionalData[region].designs.length} designs</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
