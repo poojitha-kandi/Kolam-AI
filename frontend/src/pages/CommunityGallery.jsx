@@ -65,6 +65,112 @@ const CommunityGallery = () => {
         { id: 2, user: 'Deepika Joshi', comment: 'How long did this take to create?', time: '5 days ago' },
         { id: 3, user: 'Sneha Reddy', comment: '@Deepika About 3 hours with careful planning', time: '4 days ago' }
       ]
+    },
+    {
+      id: 4,
+      title: 'Ganesh Chaturthi Splendor',
+      artist: 'Ananya Rao',
+      location: 'Pune, Maharashtra',
+      likes: 215,
+      shares: 18,
+      liked: false,
+      image: 'IMG-20251003-WA0004.jpg',
+      description: 'A stunning Ganesh rangoli meticulously crafted with colored rice and diyas, celebrating the auspicious festival.',
+      tags: ['GaneshChaturthi', 'RangoliArt', 'FestivalVibes', 'EcoFriendly'],
+      createdAt: '4 days ago',
+      comments: [
+        { id: 1, user: 'Rohit Gupta', comment: 'What a beautiful tribute to Lord Ganesha!', time: '3 days ago' },
+        { id: 2, user: 'Kavya Nair', comment: 'The colors are so vibrant! 🌈', time: '2 days ago' }
+      ]
+    },
+    {
+      id: 5,
+      title: 'Vibrant Kalash Rangoli',
+      artist: 'Ishika Verma',
+      location: 'Jaipur, Rajasthan',
+      likes: 188,
+      shares: 22,
+      liked: false,
+      image: 'IMG-20251003-WA0005.jpg',
+      description: 'A vibrant and colorful rangoli featuring a traditional Kalash, symbolizing prosperity and welcome.',
+      tags: ['Diwali', 'Colorful', 'TraditionalArt', 'Kalash'],
+      createdAt: '5 days ago',
+      comments: [
+        { id: 1, user: 'Arjun Singh', comment: 'Perfect for welcoming guests during festivals!', time: '4 days ago' },
+        { id: 2, user: 'Neha Jain', comment: 'The symmetry is incredible!', time: '3 days ago' }
+      ]
+    },
+    {
+      id: 6,
+      title: 'Intricate Mandala Design',
+      artist: 'Aarav Shah',
+      location: 'Ahmedabad, Gujarat',
+      likes: 350,
+      shares: 40,
+      liked: true,
+      image: 'IMG-20251003-WA0006.jpg',
+      description: 'An exceptionally detailed hand-painted mandala, showcasing precision and symmetry in red and white.',
+      tags: ['Mandala', 'IntricateArt', 'HandPainted', 'Meditation'],
+      createdAt: '1 week ago',
+      comments: [
+        { id: 1, user: 'Sonia Rao', comment: 'This must have taken hours! Amazing patience.', time: '6 days ago' },
+        { id: 2, user: 'Dev Patel', comment: 'Perfect for meditation and focus 🧘‍♂️', time: '5 days ago' },
+        { id: 3, user: 'Aarav Shah', comment: '@Sonia Actually took me 4 hours with breaks!', time: '5 days ago' }
+      ]
+    },
+    {
+      id: 7,
+      title: 'Festival of Lights Lotus Kolam',
+      artist: 'Jyothi Sridhar',
+      location: 'Bengaluru, Karnataka',
+      likes: 412,
+      shares: 55,
+      liked: false,
+      image: 'IMG-20251003-WA0007.jpg',
+      description: 'A radiant Kolam celebrating the festival of lights with beautiful lotus motifs and glowing diyas.',
+      tags: ['Diwali', 'Kolam', 'LotusDesign', 'Deepavali'],
+      createdAt: '1 week ago',
+      comments: [
+        { id: 1, user: 'Ravi Kumar', comment: 'The lotus petals look so realistic!', time: '6 days ago' },
+        { id: 2, user: 'Yamini Reddy', comment: 'Perfect for Deepavali celebrations 🪔', time: '5 days ago' },
+        { id: 3, user: 'Suresh Babu', comment: 'Traditional techniques with modern appeal!', time: '4 days ago' }
+      ]
+    },
+    {
+      id: 8,
+      title: 'Onam Pookalam Masterpiece',
+      artist: 'Arjun Nair',
+      location: 'Kochi, Kerala',
+      likes: 520,
+      shares: 72,
+      liked: true,
+      image: 'IMG-20251003-WA0008.jpg',
+      description: 'A magnificent peacock pookalam made entirely of fresh flower petals to celebrate the harvest festival of Onam.',
+      tags: ['Onam', 'Pookalam', 'FlowerArt', 'KeralaTradition'],
+      createdAt: '2 weeks ago',
+      comments: [
+        { id: 1, user: 'Maya Pillai', comment: 'Absolutely stunning! The peacock is so detailed 🦚', time: '1 week ago' },
+        { id: 2, user: 'Vineeth George', comment: 'This brings back memories of Onam in Kerala', time: '1 week ago' },
+        { id: 3, user: 'Lakshmi Nair', comment: 'Beautiful use of fresh flowers!', time: '6 days ago' }
+      ]
+    },
+    {
+      id: 9,
+      title: 'Traditional Sikku Kolam',
+      artist: 'Kasturi.V',
+      location: 'Madurai, Tamil Nadu',
+      likes: 290,
+      shares: 35,
+      liked: false,
+      image: 'IMG-20251003-WA0010.jpg',
+      description: 'A classic \'Sikku\' or \'Chikku\' Kolam, known for its intricate, looping lines drawn with rice flour.',
+      tags: ['SikkuKolam', 'Traditional', 'TamilNadu', 'LineArt'],
+      createdAt: '3 weeks ago',
+      comments: [
+        { id: 1, user: 'Kamala Devi', comment: 'Such precise lines! True Tamil tradition 🙏', time: '2 weeks ago' },
+        { id: 2, user: 'Gopal Krishnan', comment: 'My grandmother used to make these every morning', time: '2 weeks ago' },
+        { id: 3, user: 'Kasturi.V', comment: 'Thank you! It\'s an art passed down generations', time: '1 week ago' }
+      ]
     }
   ]);
 
