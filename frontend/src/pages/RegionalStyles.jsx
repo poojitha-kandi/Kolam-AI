@@ -162,22 +162,105 @@ const RegionalStyles = () => {
         padding: '0 1rem'
       }}>
         {(filteredDesigns.length > 0 ? filteredDesigns : getAllDesigns()).map((design) => (
-          <div key={design.id} className="design-card">
-            <div className="design-image-container" style={{height: '300px', overflow: 'hidden'}}>
+          <div key={design.id} style={{
+            background: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              position: 'relative',
+              overflow: 'hidden',
+              height: '300px',
+              flex: 'none'
+            }}>
               <img 
                 src={design.image} 
                 alt={design.name}
-                className="design-image"
-                style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transition: 'transform 0.3s ease'
+                }}
               />
             </div>
-            <div className="design-info">
-              <h3 className="design-name">{design.name}</h3>
-              <p className="design-description">{design.description}</p>
-              <div className="design-actions">
-                <button className="action-btn primary">📥 Download</button>
-                <button className="action-btn secondary">👁️ View Details</button>
-                <button className="action-btn tertiary">📱 AR Preview</button>
+            <div style={{
+              padding: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1',
+              minHeight: '200px'
+            }}>
+              <h3 style={{
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                height: '3rem',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: '1.5rem',
+                fontSize: '1.125rem'
+              }}>{design.name}</h3>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                marginBottom: '1.5rem',
+                height: '4.5rem',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: '1.5rem'
+              }}>{design.description}</p>
+              <div style={{
+                display: 'flex',
+                gap: '0.5rem',
+                marginTop: 'auto',
+                flexWrap: 'wrap'
+              }}>
+                <button 
+                  onClick={() => {
+                    // Download functionality
+                    const link = document.createElement('a');
+                    link.href = design.image;
+                    link.download = `${design.name.replace(/\s+/g, '_')}_kolam.jpg`;
+                    link.click();
+                  }}
+                  style={{
+                  background: 'linear-gradient(to right, #f97316, #9333ea)',
+                  color: 'white',
+                  fontWeight: '600',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  transition: 'all 0.3s ease',
+                  flex: '1'
+                }}>📥 Download</button>
+                <button 
+                  onClick={() => {
+                    alert(`Viewing: ${design.name}\n\n${design.description}\n\nThis would open a detailed view in a full application.`);
+                  }}
+                  style={{
+                  background: '#6b7280',
+                  color: 'white',
+                  fontWeight: '600',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  transition: 'all 0.3s ease',
+                  flex: '1'
+                }}>�️ View</button>
               </div>
             </div>
           </div>

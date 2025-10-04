@@ -270,35 +270,6 @@ const CommunityGallery = () => {
         <p>Discover and share beautiful Kolam creations from artists around the world</p>
       </div>
 
-      {/* Share Your Creation Section */}
-      <div className="upload-section">
-        <div className="upload-card">
-          <h2>📤 Share Your Creation!</h2>
-          <p>Upload your beautiful Kolam design to inspire the community</p>
-          
-          <div className="upload-area">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleCommunityUpload}
-              className="hidden"
-              id="community-upload"
-            />
-            <label htmlFor="community-upload" className="upload-button">
-              <div className="upload-icon">📸</div>
-              <span>Choose Image</span>
-            </label>
-            <button 
-              onClick={() => setShowUploadModal(true)}
-              className="upload-button secondary"
-            >
-              <div className="upload-icon">✨</div>
-              <span>Upload with Details</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div className="artworks-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
@@ -309,16 +280,25 @@ const CommunityGallery = () => {
         }
       }}>
         {artworks.map((artwork) => (
-          <div key={artwork.id} className="artwork-card">
-            <div className="artwork-image-container" style={{
-              width: '100%',
+          <div key={artwork.id} style={{
+            background: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              position: 'relative',
+              overflow: 'hidden',
               height: '300px',
-              overflow: 'hidden'
+              flex: 'none'
             }}>
               <img 
                 src={artwork.image} 
                 alt={artwork.title}
-                className="artwork-image"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -328,46 +308,137 @@ const CommunityGallery = () => {
               />
             </div>
             
-            <div className="artwork-content">
-              <div className="artwork-header">
-                <h3 className="artwork-title">{artwork.title}</h3>
-                <div className="artist-info">
-                  <span className="artist-name">by {artwork.artist}</span>
-                  <span className="artist-location">📍 {artwork.location}</span>
+            <div style={{
+              padding: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1',
+              minHeight: '280px'
+            }}>
+              <div style={{
+                marginBottom: '1rem',
+                height: '4rem'
+              }}>
+                <h3 style={{
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  marginBottom: '0.5rem',
+                  height: '1.5rem',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  fontSize: '1.125rem'
+                }}>{artwork.title}</h3>
+                <div style={{
+                  fontSize: '0.875rem',
+                  color: '#6b7280',
+                  height: '2rem'
+                }}>
+                  <span style={{display: 'block'}}>by {artwork.artist}</span>
+                  <span>📍 {artwork.location}</span>
                 </div>
               </div>
               
-              <p className="artwork-description">{artwork.description}</p>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                marginBottom: '1rem',
+                height: '3rem',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: '1.5rem'
+              }}>{artwork.description}</p>
               
-              <div className="artwork-tags">
-                {artwork.tags.map((tag, index) => (
-                  <span key={index} className="tag">#{tag}</span>
+              <div style={{
+                marginBottom: '1rem',
+                height: '2rem',
+                overflow: 'hidden'
+              }}>
+                {artwork.tags.slice(0, 3).map((tag, index) => (
+                  <span key={index} style={{
+                    background: '#f3f4f6',
+                    color: '#6b7280',
+                    fontSize: '0.75rem',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.375rem',
+                    marginRight: '0.5rem',
+                    display: 'inline-block'
+                  }}>#{tag}</span>
                 ))}
               </div>
               
-              <div className="artwork-actions">
+              <div style={{
+                display: 'flex',
+                gap: '0.5rem',
+                marginTop: 'auto',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+              }}>
                 <button 
-                  className={`action-btn like ${artwork.liked ? 'liked' : ''}`}
                   onClick={() => handleLike(artwork.id)}
+                  style={{
+                    background: '#f3f4f6',
+                    color: '#6b7280',
+                    fontWeight: '600',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
                 >
-                  {artwork.liked ? '❤️' : '🤍'} {artwork.likes}
+                  <span style={{
+                    color: artwork.liked ? '#ef4444' : '#6b7280',
+                    transition: 'color 0.3s ease'
+                  }}>{artwork.liked ? '❤️' : '🤍'}</span>
+                  {artwork.likes}
                 </button>
                 
                 <button 
-                  className="action-btn comment"
                   onClick={() => setShowComments(showComments === artwork.id ? null : artwork.id)}
+                  style={{
+                    background: '#6b7280',
+                    color: 'white',
+                    fontWeight: '600',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    transition: 'all 0.3s ease'
+                  }}
                 >
                   💬 {artwork.comments.length}
                 </button>
                 
                 <button 
-                  className="action-btn share"
                   onClick={() => handleShare(artwork)}
+                  style={{
+                    background: 'linear-gradient(to right, #f97316, #9333ea)',
+                    color: 'white',
+                    fontWeight: '600',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    transition: 'all 0.3s ease'
+                  }}
                 >
                   📤 {artwork.shares}
                 </button>
                 
-                <span className="artwork-time">{artwork.createdAt}</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  color: '#9ca3af',
+                  marginLeft: 'auto'
+                }}>{artwork.createdAt}</span>
               </div>
               
               {showComments === artwork.id && (
