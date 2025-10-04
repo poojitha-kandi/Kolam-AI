@@ -299,14 +299,32 @@ const CommunityGallery = () => {
         </div>
       </div>
 
-      <div className="artworks-grid">
+      <div className="artworks-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+        gap: '1.5rem',
+        '@media (max-width: 768px)': {
+          gridTemplateColumns: '1fr',
+          gap: '1rem'
+        }
+      }}>
         {artworks.map((artwork) => (
           <div key={artwork.id} className="artwork-card">
-            <div className="artwork-image-container">
+            <div className="artwork-image-container" style={{
+              width: '100%',
+              height: '300px',
+              overflow: 'hidden'
+            }}>
               <img 
                 src={artwork.image} 
                 alt={artwork.title}
                 className="artwork-image"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transition: 'transform 0.3s ease'
+                }}
               />
             </div>
             
@@ -393,6 +411,19 @@ const CommunityGallery = () => {
 
   return (
     <div className="community-container">
+      <style>{`
+        @media (max-width: 1200px) {
+          .artworks-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .artworks-grid {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+          }
+        }
+      `}</style>
       {renderGallery()}
       
       {/* Floating Upload Button */}

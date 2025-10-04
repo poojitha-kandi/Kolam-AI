@@ -154,14 +154,21 @@ const RegionalStyles = () => {
       </div>
 
       {/* Designs Grid */}
-      <div className="designs-grid">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+        gap: '1.5rem',
+        marginTop: '2rem',
+        padding: '0 1rem'
+      }}>
         {(filteredDesigns.length > 0 ? filteredDesigns : getAllDesigns()).map((design) => (
           <div key={design.id} className="design-card">
-            <div className="design-image-container">
+            <div className="design-image-container" style={{height: '300px', overflow: 'hidden'}}>
               <img 
                 src={design.image} 
                 alt={design.name}
                 className="design-image"
+                style={{width: '100%', height: '100%', objectFit: 'cover'}}
               />
             </div>
             <div className="design-info">

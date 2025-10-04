@@ -67,14 +67,35 @@ function App() {
   return (
     <CartProvider>
       <KolamBackground>
+        <style>{`
+          @media (max-width: 900px) {
+            .nav-buttons {
+              display: grid !important;
+              grid-template-columns: repeat(4, 1fr) !important;
+              gap: 0.5rem !important;
+              width: 100% !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .nav-buttons {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+          }
+          @media (max-width: 480px) {
+            .nav-buttons {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
         <div className="App">
-          <nav className="nav-header">
+          <nav className="nav-header" style={{background: 'rgba(45, 55, 72, 0.8)', padding: '1rem 0'}}>
             <div className="nav-container">
               <h1 className="nav-title">🎨 Kolam AI Studio</h1>
-              <div className="nav-buttons">
+              <div className="nav-buttons" style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center'}}>
                 <button 
                   onClick={() => setCurrentView('kolam')}
                   className={`nav-button ${currentView === 'kolam' ? 'active' : ''}`}
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   Kolam AI
                 </button>
@@ -82,6 +103,7 @@ function App() {
                   onClick={() => setCurrentView('occasions')}
                   className={`nav-button occasion-button ${currentView === 'occasions' ? 'active' : ''}`}
                   title="Browse traditional rangoli designs by occasion"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   🎉 Occasion Rangoli
                 </button>
@@ -89,6 +111,7 @@ function App() {
                   onClick={() => setCurrentView('regional')}
                   className={`nav-button ${currentView === 'regional' ? 'active' : ''}`}
                   title="Explore regional kolam styles"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   🗺️ Regional Styles
                 </button>
@@ -96,6 +119,7 @@ function App() {
                   onClick={() => setCurrentView('learn')}
                   className={`nav-button ${currentView === 'learn' ? 'active' : ''}`}
                   title="Interactive drawing tutorials"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   📚 Learn to Draw
                 </button>
@@ -103,6 +127,7 @@ function App() {
                   onClick={() => setCurrentView('ar')}
                   className={`nav-button ${currentView === 'ar' ? 'active' : ''}`}
                   title="AR preview of your designs"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   📱 AR Preview
                 </button>
@@ -110,6 +135,7 @@ function App() {
                   onClick={() => setCurrentView('challenges')}
                   className={`nav-button ${currentView === 'challenges' ? 'active' : ''}`}
                   title="Daily challenges and achievements"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   🏆 Challenges
                 </button>
@@ -117,12 +143,14 @@ function App() {
                   onClick={() => setCurrentView('community')}
                   className={`nav-button ${currentView === 'community' ? 'active' : ''}`}
                   title="Community gallery and sharing"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   👥 Community
                 </button>
                 <button 
                   onClick={() => setCurrentView('mandala')}
                   className={`nav-button ${currentView === 'mandala' ? 'active' : ''}`}
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   Mandala Coloring
                 </button>
@@ -130,12 +158,14 @@ function App() {
                   onClick={() => setCurrentView('shop')}
                   className={`nav-button shop-button ${currentView === 'shop' ? 'active' : ''}`}
                   title="Shop Kolam art supplies"
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 >
                   🛍️ Shop
                 </button>
                 <CartBadge 
                   onClick={() => setCurrentView('cart')}
                   className={`nav-button cart-button ${currentView === 'cart' ? 'active' : ''}`}
+                  style={{fontSize: '0.7rem', padding: '0.25rem 0.75rem', minWidth: '70px'}}
                 />
               </div>
             </div>

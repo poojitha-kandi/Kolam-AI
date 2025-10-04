@@ -114,12 +114,6 @@ const ShopPage = () => {
               <p className="text-lg font-semibold text-orange-600">
                 Free shipping on orders ₹500+
               </p>
-              <button
-                onClick={() => setShowAdminPanel(!showAdminPanel)}
-                className="mt-2 px-3 py-1 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                {showAdminPanel ? 'Hide Admin' : 'Admin Panel'}
-              </button>
             </div>
           </div>
 
@@ -284,7 +278,11 @@ const ShopPage = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '1.5rem'
+          }}>
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -295,6 +293,21 @@ const ShopPage = () => {
           </div>
         )}
       </div>
+
+      {/* Footer with Admin Panel Button */}
+      <footer className="bg-gray-100 border-t border-gray-200 py-6 mt-8">
+        <div className="container mx-auto px-4 text-center">
+          <button
+            onClick={() => setShowAdminPanel(!showAdminPanel)}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            {showAdminPanel ? '🔧 Hide Admin Panel' : '🔧 Admin Panel'}
+          </button>
+          <p className="text-sm text-gray-500 mt-2">
+            Admin tools for managing shop inventory
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
@@ -308,107 +321,225 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div 
-      className="product-card bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105"
+      style={{
+        background: 'white',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Product Image */}
-      <div className="relative overflow-hidden">
+      {/* Product Image - Standardized to 300px */}
+      <div style={{
+        position: 'relative',
+        overflow: 'hidden',
+        height: '300px',
+        flex: 'none'
+      }}>
         {imageError ? (
-          <div className="w-full h-48 bg-gradient-to-br from-orange-100 to-purple-100 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🎨</div>
-              <p className="text-sm text-gray-500">Product Image</p>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(135deg, #fed7aa, #fae8ff)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '2.5rem', marginBottom: '0.5rem'}}>🎨</div>
+              <p style={{fontSize: '0.875rem', color: '#6b7280'}}>Product Image</p>
             </div>
           </div>
         ) : (
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.3s ease'
+            }}
             onError={() => setImageError(true)}
           />
         )}
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div style={{
+          position: 'absolute',
+          top: '0.75rem',
+          left: '0.75rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem'
+        }}>
           {product.featured && (
-            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-bold px-2 py-1 rounded-full">
+            <span style={{
+              background: 'linear-gradient(to right, #fbbf24, #f97316)',
+              color: 'white',
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '9999px'
+            }}>
               ⭐ Featured
             </span>
           )}
           {discountPercentage > 0 && (
-            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            <span style={{
+              background: '#ef4444',
+              color: 'white',
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '9999px'
+            }}>
               {discountPercentage}% OFF
             </span>
           )}
         </div>
-
-        {/* Quick Actions */}
-        <div className={`absolute top-3 right-3 flex flex-col gap-2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-          <button className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
-            <Heart className="w-4 h-4 text-gray-600" />
-          </button>
-          <button className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
-            <Eye className="w-4 h-4 text-gray-600" />
-          </button>
-        </div>
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
+      {/* Product Info - Fixed structure */}
+      <div style={{
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1',
+        minHeight: '280px'
+      }}>
         {/* Category */}
-        <p className="text-xs text-orange-600 font-medium uppercase tracking-wide mb-1">
+        <p style={{
+          fontSize: '0.75rem',
+          color: '#ea580c',
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: '0.5rem',
+          height: '1rem'
+        }}>
           {product.category.replace('-', ' ')}
         </p>
 
-        {/* Name */}
-        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+        {/* Name - Fixed height */}
+        <h3 style={{
+          fontWeight: '600',
+          color: '#1f2937',
+          marginBottom: '0.75rem',
+          height: '3rem',
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          lineHeight: '1.5rem'
+        }}>
           {product.name}
         </h3>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-2">
-          <div className="flex">
+        {/* Rating - Fixed height */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.25rem',
+          marginBottom: '0.75rem',
+          height: '1.5rem'
+        }}>
+          <div style={{display: 'flex'}}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-4 h-4 ${
-                  star <= Math.floor(product.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                }`}
+                style={{
+                  width: '1rem',
+                  height: '1rem',
+                  color: star <= Math.floor(product.rating) ? '#fbbf24' : '#d1d5db',
+                  fill: star <= Math.floor(product.rating) ? '#fbbf24' : '#d1d5db'
+                }}
               />
             ))}
           </div>
-          <span className="text-sm text-gray-600">
+          <span style={{
+            fontSize: '0.875rem',
+            color: '#6b7280'
+          }}>
             {product.rating} ({product.reviews})
           </span>
         </div>
 
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        {/* Description - Fixed height */}
+        <p style={{
+          fontSize: '0.875rem',
+          color: '#6b7280',
+          marginBottom: '1rem',
+          height: '3rem',
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          lineHeight: '1.5rem'
+        }}>
           {product.description}
         </p>
 
-        {/* Price */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl font-bold text-gray-800">
+        {/* Price - Fixed height */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1.5rem',
+          height: '2rem'
+        }}>
+          <span style={{
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: '#1f2937'
+          }}>
             ₹{product.price}
           </span>
           {product.originalPrice > product.price && (
-            <span className="text-sm text-gray-500 line-through">
+            <span style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              textDecoration: 'line-through'
+            }}>
               ₹{product.originalPrice}
             </span>
           )}
         </div>
 
-        {/* Add to Cart Button */}
+        {/* Add to Cart Button - Fixed at bottom */}
         <button
           onClick={() => onAddToCart(product)}
-          className="w-full bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 hover:from-orange-600 hover:to-purple-700 hover:shadow-lg flex items-center justify-center gap-2"
+          style={{
+            width: '100%',
+            background: 'linear-gradient(to right, #f97316, #9333ea)',
+            color: 'white',
+            fontWeight: '600',
+            padding: '0.75rem',
+            borderRadius: '0.75rem',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.3s ease',
+            marginTop: 'auto'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.background = 'linear-gradient(to right, #ea580c, #7c3aed)';
+            e.target.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.background = 'linear-gradient(to right, #f97316, #9333ea)';
+            e.target.style.boxShadow = 'none';
+          }}
         >
-          <ShoppingCart className="w-5 h-5" />
+          <ShoppingCart style={{width: '1.25rem', height: '1.25rem'}} />
           Add to Cart
         </button>
       </div>

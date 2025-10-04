@@ -276,25 +276,82 @@ const Challenges = () => {
 
   return (
     <div className="challenges-container">
-      {/* Header with User Stats */}
-      <div className="challenges-header">
-        <div className="user-profile">
-          <div className="user-avatar">🎨</div>
-          <div className="user-info">
-            <h1>{user.name}</h1>
-            <div className="user-stats">
-              <span className="level">Level {user.level}</span>
-              <span className="xp">{user.xp} / {user.xpToNext} XP</span>
-              <span className="streak">🔥 {user.streak} day streak</span>
+      <style>{`
+        .challenges-header-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+          margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) {
+          .challenges-header-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+        }
+        .user-badges-section {
+          background: var(--bg-secondary, #2d3748);
+          border-radius: 0.5rem;
+          padding: 1.5rem;
+        }
+        .badges-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .badge-preview {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem;
+          background: var(--bg-primary, #1a202c);
+          border-radius: 0.5rem;
+          border: 1px solid #f56b35;
+        }
+      `}</style>
+      {/* Header with User Stats and Badges Side by Side - Updated Layout */}
+      <div className="challenges-header-layout">
+        <div className="user-profile-section">
+          <div className="challenges-header">
+            <div className="user-profile">
+              <div className="user-avatar">🎨</div>
+              <div className="user-info">
+                <h1>{user.name}</h1>
+                <div className="user-stats">
+                  <span className="level">Level {user.level}</span>
+                  <span className="xp">{user.xp} / {user.xpToNext} XP</span>
+                  <span className="streak">🔥 {user.streak} day streak</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="xp-bar">
+              <div 
+                className="xp-progress" 
+                style={{ width: `${(user.xp / user.xpToNext) * 100}%` }}
+              ></div>
             </div>
           </div>
         </div>
-        
-        <div className="xp-bar">
-          <div 
-            className="xp-progress" 
-            style={{ width: `${(user.xp / user.xpToNext) * 100}%` }}
-          ></div>
+
+        <div className="user-badges-section">
+          <h2>🏆 Your Badges</h2>
+          <div className="badges-preview">
+            {Object.entries(badges)
+              .filter(([key]) => user.badges.includes(key))
+              .slice(0, 4)
+              .map(([key, badge]) => (
+                <div key={key} className="badge-preview">
+                  <div className="badge-icon-small">{badge.icon}</div>
+                  <span className="badge-name-small">{badge.name}</span>
+                </div>
+              ))}
+            {user.badges.length > 4 && (
+              <div className="badge-preview more-badges">
+                +{user.badges.length - 4} more
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
