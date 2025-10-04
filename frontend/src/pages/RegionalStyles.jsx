@@ -13,19 +13,19 @@ const RegionalStyles = () => {
         {
           id: 1,
           name: 'Padi Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/padi-kolam.jpg',
           description: 'Traditional step-pattern Kolam using rice flour, symbolizing prosperity and abundance.'
         },
         {
           id: 2,
           name: 'Pulli Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/pulli-kolam.jpg',
           description: 'Dot-based Kolam pattern representing the mathematical precision of Tamil culture.'
         },
         {
           id: 3,
           name: 'Navarathri Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/navarathri-kolam.jpg',
           description: 'Nine-night festival Kolam with elaborate designs honoring the Divine Feminine.'
         }
       ]
@@ -36,19 +36,19 @@ const RegionalStyles = () => {
         {
           id: 4,
           name: 'Sankranti Muggu',
-          image: '/api/placeholder/300/300',
+          image: '/sankranthi-kolam.jpg',
           description: 'Harvest festival Rangoli with sun motifs and geometric patterns celebrating agricultural abundance.'
         },
         {
           id: 5,
           name: 'Lotus Muggu',
-          image: '/api/placeholder/300/300',
+          image: '/lotus-kolam.jpg',
           description: 'Sacred lotus flower design symbolizing purity and spiritual awakening.'
         },
         {
           id: 6,
           name: 'Peacock Muggu',
-          image: '/api/placeholder/300/300',
+          image: '/peacock-kolam.jpeg',
           description: 'Traditional peacock motif representing grace and beauty in Telugu culture.'
         }
       ]
@@ -59,19 +59,19 @@ const RegionalStyles = () => {
         {
           id: 7,
           name: 'Mysore Rangoli',
-          image: '/api/placeholder/300/300',
+          image: '/mysore-rangoli.jpeg',
           description: 'Royal palace-inspired designs with intricate geometric patterns.'
         },
         {
           id: 8,
           name: 'Ganesha Rangoli',
-          image: '/api/placeholder/300/300',
+          image: '/ganesha-rangoli.jpeg',
           description: 'Lord Ganesha motif for auspicious occasions and festivals.'
         },
         {
           id: 9,
           name: 'Hoysala Rangoli',
-          image: '/api/placeholder/300/300',
+          image: '/hoysala-kolam.jpg',
           description: 'Inspired by Hoysala architecture with temple motifs.'
         }
       ]
@@ -82,19 +82,19 @@ const RegionalStyles = () => {
         {
           id: 10,
           name: 'Onam Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/onam-kolam.jpg',
           description: 'Harvest festival design with floral patterns and traditional motifs.'
         },
         {
           id: 11,
           name: 'Boat Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/boat-kolam.jpg',
           description: 'Traditional boat motif representing Kerala maritime heritage.'
         },
         {
           id: 12,
           name: 'Coconut Tree Kolam',
-          image: '/api/placeholder/300/300',
+          image: '/coconut-tree-kolam.jpeg',
           description: 'Coconut palm design symbolizing prosperity and natural abundance.'
         }
       ]
@@ -184,7 +184,8 @@ const RegionalStyles = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'contain',
+                  backgroundColor: '#f9fafb',
                   transition: 'transform 0.3s ease'
                 }}
               />
