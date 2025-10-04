@@ -279,3 +279,99 @@ export const getFeaturedProducts = () => {
 export const getDiscountPercentage = (price, originalPrice) => {
   return Math.round(((originalPrice - price) / originalPrice) * 100);
 };
+
+// Community Gallery Posts
+export const COMMUNITY_POSTS = [
+  {
+    id: 1,
+    title: "Majestic Margazhi Kolam",
+    author: "S. Vidya",
+    location: "Chennai, Tamil Nadu",
+    image: "WhatsApp Image 2025-10-04 at 09.30.06_b460c095.jpg",
+    description: "Waking up early to draw this detailed Kolam for the auspicious month of Margazhi. A blend of geometric patterns and floral motifs.",
+    hashtags: ["#Margazhi", "#Kolam", "#FloorArt", "#SouthIndia", "#GeometricDesign"],
+    likes: 215,
+    comments: 18,
+    shares: 7,
+    timeAgo: "2 hours ago",
+    featured: true
+  },
+  {
+    id: 2,
+    title: "Onam Pookalam Splendor",
+    author: "Anjali Menon",
+    location: "Kochi, Kerala",
+    image: "WhatsApp Image 2025-10-04 at 09.31.02_2486015d.jpg",
+    description: "Celebrating the spirit of Onam with this vibrant Pookalam, made with fresh flowers from our garden. A tradition that brings so much joy!",
+    hashtags: ["#Onam", "#Pookalam", "#KeralaTradition", "#FlowerArt", "#FestivalVibes"],
+    likes: 350,
+    comments: 25,
+    shares: 11,
+    timeAgo: "8 hours ago",
+    featured: true
+  },
+  {
+    id: 3,
+    title: "Intricate Sikku Kolam",
+    author: "Meenakshi Iyer",
+    location: "Madurai, Tamil Nadu",
+    image: "WhatsApp Image 2025-10-04 at 09.32.06_174671ed.jpg",
+    description: "My attempt at a classic 'Sikku' or 'Chikku' Kolam, known for its intricate, continuous looping lines drawn with rice flour. A meditative and beautiful art form.",
+    hashtags: ["#SikkuKolam", "#ChikkuKolam", "#TamilNadu", "#LineArt", "#Traditional"],
+    likes: 198,
+    comments: 12,
+    shares: 5,
+    timeAgo: "1 day ago",
+    featured: false
+  },
+  {
+    id: 4,
+    title: "Diwali Glow Rangoli",
+    author: "Rohan Gupta",
+    location: "Jaipur, Rajasthan",
+    image: "WhatsApp Image 2025-10-04 at 10.03.37_c45e6b1c.jpg",
+    description: "A traditional rangoli for the festival of lights. The combination of red and white with glowing diyas to welcome prosperity and happiness. Happy Diwali!",
+    hashtags: ["#Diwali", "#Rangoli", "#FestivalOfLights", "#Diya", "#TraditionalArt"],
+    likes: 412,
+    comments: 31,
+    shares: 15,
+    timeAgo: "2 days ago",
+    featured: true
+  }
+];
+
+// Community Gallery Helper Functions
+export const getCommunityPostById = (id) => {
+  return COMMUNITY_POSTS.find(post => post.id === id);
+};
+
+export const getFeaturedPosts = () => {
+  return COMMUNITY_POSTS.filter(post => post.featured);
+};
+
+export const getPostsByAuthor = (author) => {
+  return COMMUNITY_POSTS.filter(post => post.author === author);
+};
+
+export const getMostLikedPosts = (limit = 10) => {
+  return COMMUNITY_POSTS
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, limit);
+};
+
+export const getRecentPosts = (limit = 10) => {
+  return COMMUNITY_POSTS.slice(0, limit);
+};
+
+// Featured community posts for main page display
+export const FEATURED_COMMUNITY_HIGHLIGHTS = [
+  {
+    id: 'highlight-1',
+    title: 'Community Gallery',
+    subtitle: 'Discover and share beautiful Kolam creations from artists around the world.',
+    description: 'Existing posts from your video would appear here first...',
+    posts: COMMUNITY_POSTS.filter(post => post.featured),
+    totalPosts: COMMUNITY_POSTS.length,
+    totalLikes: COMMUNITY_POSTS.reduce((sum, post) => sum + post.likes, 0)
+  }
+];

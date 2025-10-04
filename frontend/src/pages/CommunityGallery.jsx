@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { COMMUNITY_POSTS, getFeaturedPosts, getMostLikedPosts, getRecentPosts } from '../data/products.js';
 import '../App.css';
 
 const CommunityGallery = () => {
@@ -40,60 +41,33 @@ const CommunityGallery = () => {
     }
   };
 
-  const [artworks, setArtworks] = useState([
-    {
-      id: 1,
-      title: 'Diwali Festival Kolam',
-      artist: 'Priya Sharma',
-      location: 'Chennai, Tamil Nadu',
-      likes: 127,
-      shares: 23,
+  // Transform community posts to match component structure
+  const transformCommunityPosts = () => {
+    return COMMUNITY_POSTS.map(post => ({
+      id: post.id,
+      title: post.title,
+      artist: post.author,
+      location: post.location,
+      likes: post.likes,
+      shares: post.shares,
       liked: false,
-      image: '/api/placeholder/300/300',
-      description: 'Traditional Diwali Kolam created with rice flour and turmeric. This design represents prosperity and welcoming Goddess Lakshmi.',
-      tags: ['Diwali', 'Traditional', 'Rice Flour'],
-      createdAt: '2 days ago',
+      image: post.image,
+      description: post.description,
+      tags: post.hashtags.map(tag => tag.replace('#', '')),
+      createdAt: post.timeAgo,
       comments: [
-        { id: 1, user: 'Anita Kumar', comment: 'Beautiful work! Love the traditional approach.', time: '1 day ago' },
-        { id: 2, user: 'Ravi Iyer', comment: 'This brings back childhood memories 😊', time: '2 hours ago' }
+        { id: 1, user: 'Community Member', comment: 'Beautiful work!', time: '1 hour ago' },
+        { id: 2, user: 'Art Lover', comment: 'Love the traditional style 😊', time: '30 minutes ago' }
       ]
-    },
+    }));
+  };
+
+  const [artworks, setArtworks] = useState(() => {
+    // Start with transformed community posts, then add the existing hardcoded ones
+    const communityArtworks = transformCommunityPosts();
+    const existingArtworks = [
     {
-      id: 2,
-      title: 'Modern Geometric Mandala',
-      artist: 'Raj Patel',
-      location: 'Mumbai, Maharashtra',
-      likes: 89,
-      shares: 15,
-      liked: true,
-      image: '/api/placeholder/300/300',
-      description: 'Contemporary interpretation of traditional Rangoli using geometric patterns and vibrant colors.',
-      tags: ['Modern', 'Geometric', 'Colorful'],
-      createdAt: '5 days ago',
-      comments: [
-        { id: 1, user: 'Meera Singh', comment: 'Love the modern twist on traditional art!', time: '3 days ago' }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Peacock Kolam Masterpiece',
-      artist: 'Sneha Reddy',
-      location: 'Hyderabad, Andhra Pradesh',
-      likes: 156,
-      shares: 34,
-      liked: false,
-      image: '/api/placeholder/300/300',
-      description: 'Intricate peacock design symbolizing grace and beauty. Created for Saraswati Puja celebration.',
-      tags: ['Peacock', 'Festival', 'Artistic'],
-      createdAt: '1 week ago',
-      comments: [
-        { id: 1, user: 'Vikram Kumar', comment: 'Absolutely stunning detail work!', time: '6 days ago' },
-        { id: 2, user: 'Deepika Joshi', comment: 'How long did this take to create?', time: '5 days ago' },
-        { id: 3, user: 'Sneha Reddy', comment: '@Deepika About 3 hours with careful planning', time: '4 days ago' }
-      ]
-    },
-    {
-      id: 4,
+      id: 104,
       title: 'Ganesh Chaturthi Splendor',
       artist: 'Ananya Rao',
       location: 'Pune, Maharashtra',
@@ -110,7 +84,7 @@ const CommunityGallery = () => {
       ]
     },
     {
-      id: 5,
+      id: 105,
       title: 'Vibrant Kalash Rangoli',
       artist: 'Ishika Verma',
       location: 'Jaipur, Rajasthan',
@@ -127,7 +101,7 @@ const CommunityGallery = () => {
       ]
     },
     {
-      id: 6,
+      id: 106,
       title: 'Intricate Mandala Design',
       artist: 'Aarav Shah',
       location: 'Ahmedabad, Gujarat',
@@ -145,7 +119,7 @@ const CommunityGallery = () => {
       ]
     },
     {
-      id: 7,
+      id: 107,
       title: 'Festival of Lights Lotus Kolam',
       artist: 'Jyothi Sridhar',
       location: 'Bengaluru, Karnataka',
@@ -163,7 +137,7 @@ const CommunityGallery = () => {
       ]
     },
     {
-      id: 8,
+      id: 108,
       title: 'Onam Pookalam Masterpiece',
       artist: 'Arjun Nair',
       location: 'Kochi, Kerala',
@@ -181,7 +155,7 @@ const CommunityGallery = () => {
       ]
     },
     {
-      id: 9,
+      id: 109,
       title: 'Traditional Sikku Kolam',
       artist: 'Kasturi.V',
       location: 'Madurai, Tamil Nadu',
@@ -198,7 +172,11 @@ const CommunityGallery = () => {
         { id: 3, user: 'Kasturi.V', comment: 'Thank you! It\'s an art passed down generations', time: '1 week ago' }
       ]
     }
-  ]);
+    ];
+    
+    // Combine community posts (which should appear first) with existing artworks
+    return [...communityArtworks, ...existingArtworks];
+  });
 
   const handleLike = (artworkId) => {
     setArtworks(prev => prev.map(artwork => 
