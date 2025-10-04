@@ -13,7 +13,7 @@ export const PRODUCTS = [
     price: 199,
     originalPrice: 249,
     category: PRODUCT_CATEGORIES.STENCILS,
-    image: "/shop/stencils.jpg",
+    image: "/Traditional kolam stencils.jpg",
     description: "Set of 12 traditional Kolam design stencils made from durable plastic. Perfect for beginners and experts alike.",
     features: [
       "12 different traditional designs",
@@ -27,21 +27,21 @@ export const PRODUCTS = [
   },
   {
     id: 2,
-    name: "Powder Rollers Set",
-    price: 249,
-    originalPrice: 299,
-    category: PRODUCT_CATEGORIES.TOOLS,
-    image: "/shop/powder-rollers.jpg",
-    description: "Professional-grade powder rollers for smooth and even Kolam creation. Includes 3 different sizes.",
+    name: "Decorative Mandala Serving Tray",
+    price: 799,
+    originalPrice: 1199,
+    category: PRODUCT_CATEGORIES.ACCESSORIES,
+    image: "/Decorative Mandala Serving Tray.jpeg",
+    description: "A beautiful and durable serving tray featuring an intricate mosaic of Mandala patterns. Perfect for festivals and home decor.",
     features: [
-      "3 different roller sizes",
-      "Non-stick surface",
-      "Ergonomic handle",
-      "Easy to fill and use"
+      "Intricate mosaic Mandala patterns",
+      "Durable construction",
+      "Perfect for festivals and decor",
+      "Beautiful serving tray design"
     ],
     inStock: true,
-    rating: 4.7,
-    reviews: 96
+    rating: 4.9,
+    reviews: 340
   },
   {
     id: 3,
@@ -49,7 +49,7 @@ export const PRODUCTS = [
     price: 99,
     originalPrice: 129,
     category: PRODUCT_CATEGORIES.TOOLS,
-    image: "/shop/outliner-pen.jpg",
+    image: "/test-precision.jpg",
     description: "Fine-tip outliner pen for creating precise Kolam borders and intricate details.",
     features: [
       "Fine 0.5mm tip",
@@ -67,7 +67,7 @@ export const PRODUCTS = [
     price: 149,
     originalPrice: 179,
     category: PRODUCT_CATEGORIES.MATERIALS,
-    image: "/shop/color-fillers.jpg",
+    image: "/Natural colour filters.jpg",
     description: "Set of 8 natural color powders made from turmeric, vermillion, and other traditional materials.",
     features: [
       "8 vibrant natural colors",
@@ -85,7 +85,7 @@ export const PRODUCTS = [
     price: 299,
     originalPrice: 349,
     category: PRODUCT_CATEGORIES.ACCESSORIES,
-    image: "/shop/template-trays.jpg",
+    image: "/Premium template trays.jpg",
     description: "Set of 6 premium template trays with intricate Kolam patterns. Made from high-quality brass.",
     features: [
       "6 different brass templates",
@@ -103,7 +103,7 @@ export const PRODUCTS = [
     price: 199,
     originalPrice: 229,
     category: PRODUCT_CATEGORIES.TOOLS,
-    image: "/shop/sprinklers.jpg",
+    image: "/Multi pattern sprinkler.jpg",
     description: "Adjustable sprinklers for creating dots and patterns. Perfect for geometric Kolam designs.",
     features: [
       "3 adjustable nozzle sizes",
@@ -121,7 +121,7 @@ export const PRODUCTS = [
     price: 179,
     originalPrice: 199,
     category: PRODUCT_CATEGORIES.ACCESSORIES,
-    image: "/shop/design-book.jpg",
+    image: "/kolam design book.jpg",
     description: "Comprehensive guide with 100+ traditional and modern Kolam designs with step-by-step instructions.",
     features: [
       "100+ unique designs",
@@ -139,7 +139,7 @@ export const PRODUCTS = [
     price: 89,
     originalPrice: 109,
     category: PRODUCT_CATEGORIES.MATERIALS,
-    image: "/shop/rice-flour.jpg",
+    image: "/Eco friendly rice flour.jpg",
     description: "Premium quality rice flour specially ground for Kolam making. 100% organic and eco-friendly.",
     features: [
       "100% organic rice flour",
@@ -157,7 +157,7 @@ export const PRODUCTS = [
     price: 799,
     originalPrice: 999,
     category: PRODUCT_CATEGORIES.ACCESSORIES,
-    image: "/shop/professional-kit.jpg",
+    image: "/test-professional.jpg",
     description: "Complete professional kit with all essential tools for serious Kolam artists. Perfect gift for enthusiasts.",
     features: [
       "Complete tool collection",
