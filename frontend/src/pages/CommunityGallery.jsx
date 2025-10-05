@@ -447,10 +447,10 @@ const CommunityGallery = () => {
                     {artwork.comments.map((comment) => (
                       <div key={comment.id} className="comment">
                         <div className="comment-header">
-                          <span className="comment-user">{comment.user}</span>
-                          <span className="comment-time">{comment.time}</span>
+                          <span className="comment-user" style={{color: '#000000', fontWeight: '600'}}>{comment.user}</span>
+                          <span className="comment-time" style={{color: '#333333'}}>{comment.time}</span>
                         </div>
-                        <p className="comment-text">{comment.comment}</p>
+                        <p className="comment-text" style={{color: '#000000', margin: '0'}}>{comment.comment}</p>
                       </div>
                     ))}
                   </div>
